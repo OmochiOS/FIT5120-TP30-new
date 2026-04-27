@@ -89,7 +89,7 @@ public class LocationDetailDTO {
         return matchesPreferences;
     }
 
-    public void setMatchesPreerences(boolean matchesPreferences){
+    public void setMatchesPreferences(boolean matchesPreferences){
         this.matchesPreferences = matchesPreferences;
     }
 

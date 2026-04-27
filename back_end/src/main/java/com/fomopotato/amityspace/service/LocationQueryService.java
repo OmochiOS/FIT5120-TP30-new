@@ -3,12 +3,13 @@ package com.fomopotato.amityspace.service;
 import com.fomopotato.amityspace.dto.LocationDetailDTO;
 import com.fomopotato.amityspace.dto.LocationSummaryDTO;
 import com.fomopotato.amityspace.dto.SensoryProfileDTO;
+import com.fomopotato.amityspace.entity.LocationEntity;
+import com.fomopotato.amityspace.entity.SensoryProfileEntity;
 import com.fomopotato.amityspace.enums.PredictabilityLevel;
 import com.fomopotato.amityspace.enums.SensoryLevel;
 import com.fomopotato.amityspace.exception.LocationNotFoundException;
 import com.fomopotato.amityspace.exception.SensoryProfileNotFoundException;
-import com.fomopotato.amityspace.model.Location;
-import com.fomopotato.amityspace.model.SensoryProfile;
+import com.fomopotato.amityspace.repository.LocationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,37 +18,33 @@ import java.util.List;
 @Service
 public class LocationQueryService {
 
-    private final LocationDataService locationDataService;
+    private final LocationRepository locationRepository;
 
-    public LocationQueryService(LocationDataService locationDataService) {
-        this.locationDataService = locationDataService;
+    public LocationQueryService(LocationRepository locationRepository) {
+        this.locationRepository = locationRepository;
     }
 
     public List<LocationSummaryDTO> getAllLocations() {
         List<LocationSummaryDTO> results = new ArrayList<>();
 
-        for (Location location : getAllLocationModels()) {
+        for (LocationEntity location : getAllLocationEntities()) {
             results.add(buildLocationSummary(location, false));
         }
 
         return results;
     }
 
-    public List<Location> getAllLocationModels() {
-        return locationDataService.getLocations();
+    public List<LocationEntity> getAllLocationEntities() {
+        return locationRepository.findAll();
     }
 
-    public Location getLocationById(Long id) {
-        for (Location location : getAllLocationModels()) {
-            if (location.getId().equals(id)) {
-                return location;
-            }
-        }
-        throw new LocationNotFoundException(id);
+    public LocationEntity getLocationById(Long id) {
+        return locationRepository.findById(id)
+                .orElseThrow(() -> new LocationNotFoundException(id));
     }
 
-    public SensoryProfile getSensoryProfileForLocation(Location location) {
-        SensoryProfile sensoryProfile = location.getSensoryProfile();
+    public SensoryProfileEntity getSensoryProfileForLocation(LocationEntity location) {
+        SensoryProfileEntity sensoryProfile = location.getSensoryProfile();
 
         if (sensoryProfile == null) {
             throw new SensoryProfileNotFoundException(location.getId());
@@ -57,13 +54,13 @@ public class LocationQueryService {
     }
 
     public LocationDetailDTO getLocationDetailById(Long id) {
-        Location location = getLocationById(id);
-        SensoryProfile sensoryProfile = getSensoryProfileForLocation(location);
+        LocationEntity location = getLocationById(id);
+        SensoryProfileEntity sensoryProfile = getSensoryProfileForLocation(location);
 
         return buildLocationDetail(location, sensoryProfile, false);
     }
 
-    LocationSummaryDTO buildLocationSummary(Location location, boolean matchesPreferences) {
+    LocationSummaryDTO buildLocationSummary(LocationEntity location, boolean matchesPreferences) {
         return new LocationSummaryDTO(
                 location.getId(),
                 location.getName(),
@@ -76,8 +73,8 @@ public class LocationQueryService {
         );
     }
 
-    LocationDetailDTO buildLocationDetail(Location location,
-                                          SensoryProfile sensoryProfile,
+    LocationDetailDTO buildLocationDetail(LocationEntity location,
+                                          SensoryProfileEntity sensoryProfile,
                                           boolean matchesPreferences) {
         return new LocationDetailDTO(
                 location.getId(),
@@ -92,7 +89,7 @@ public class LocationQueryService {
         );
     }
 
-    SensoryProfileDTO buildSensoryProfile(SensoryProfile sensoryProfile) {
+    SensoryProfileDTO buildSensoryProfile(SensoryProfileEntity sensoryProfile) {
         return new SensoryProfileDTO(
                 sensoryProfile.getNoiseDb(),
                 getSensoryLabel(sensoryProfile.getNoiseLevel()),
@@ -101,7 +98,7 @@ public class LocationQueryService {
                 buildLightingDescription(sensoryProfile),
                 getPredictabilityLabel(sensoryProfile.getPredictabilityLevel()),
                 buildPredictabilityDescription(sensoryProfile),
-                sensoryProfile.isQuietSpaceAvailable(),
+                sensoryProfile.getQuietSpaceAvailable(),
                 buildQuietSpaceDescription(sensoryProfile),
                 sensoryProfile.getOverallSensoryScore(),
                 sensoryProfile.getBestTimesToVisit(),
@@ -112,7 +109,7 @@ public class LocationQueryService {
 
     private String getSensoryLabel(SensoryLevel level) {
         if (level == null) {
-            return "Moderate";
+            return null;
         }
 
         switch (level) {
@@ -125,13 +122,13 @@ public class LocationQueryService {
             case OVERSTIMULATING:
                 return "Overstimulating";
             default:
-                return "Moderate";
+                return null;
         }
     }
 
     private String getPredictabilityLabel(PredictabilityLevel level) {
         if (level == null) {
-            return "Moderate";
+            return null;
         }
 
         switch (level) {
@@ -142,13 +139,13 @@ public class LocationQueryService {
             case LOW:
                 return "Low";
             default:
-                return "Moderate";
+                return null;
         }
     }
 
-    private String buildNoiseDescription(SensoryProfile sensoryProfile) {
+    private String buildNoiseDescription(SensoryProfileEntity sensoryProfile) {
         if (sensoryProfile == null || sensoryProfile.getNoiseLevel() == null) {
-            return "Noise is estimated from the latest available context.";
+            return "Noise conditions are not available.";
         }
 
         switch (sensoryProfile.getNoiseLevel()) {
@@ -161,13 +158,13 @@ public class LocationQueryService {
             case OVERSTIMULATING:
                 return "Very loud environment that may be overwhelming for sensory-sensitive users.";
             default:
-                return "Noise is estimated from the latest available context.";
+                return "Noise conditions are not available.";
         }
     }
 
-    private String buildLightingDescription(SensoryProfile sensoryProfile) {
+    private String buildLightingDescription(SensoryProfileEntity sensoryProfile) {
         if (sensoryProfile == null || sensoryProfile.getLightingLevel() == null) {
-            return "Lighting may vary; use local conditions as the guide.";
+            return "Lighting conditions are not available.";
         }
 
         switch (sensoryProfile.getLightingLevel()) {
@@ -180,13 +177,13 @@ public class LocationQueryService {
             case OVERSTIMULATING:
                 return "Very bright or harsh lighting that may feel overwhelming.";
             default:
-                return "Lighting may vary; use local conditions as the guide.";
+                return "Lighting conditions are not available.";
         }
     }
 
-    private String buildPredictabilityDescription(SensoryProfile sensoryProfile) {
+    private String buildPredictabilityDescription(SensoryProfileEntity sensoryProfile) {
         if (sensoryProfile == null || sensoryProfile.getPredictabilityLevel() == null) {
-            return "Visit patterns may vary; use the current crowd score as the main guide.";
+            return "Predictability information is not available.";
         }
 
         switch (sensoryProfile.getPredictabilityLevel()) {
@@ -197,18 +194,19 @@ public class LocationQueryService {
             case LOW:
                 return "The environment may change frequently and feel less predictable.";
             default:
-                return "Visit patterns may vary; use the current crowd score as the main guide.";
+                return "Predictability information is not available.";
         }
     }
 
-    private String buildQuietSpaceDescription(SensoryProfile sensoryProfile) {
-        if (sensoryProfile == null) {
-            return "No dedicated quiet space is listed; plan a nearby reset point.";
+    private String buildQuietSpaceDescription(SensoryProfileEntity sensoryProfile) {
+        if (sensoryProfile == null || sensoryProfile.getQuietSpaceAvailable() == null) {
+            return "Quiet space information is not available.";
         }
 
-        if (sensoryProfile.isQuietSpaceAvailable()) {
+        if (Boolean.TRUE.equals(sensoryProfile.getQuietSpaceAvailable())) {
             return "A quieter area is available nearby if needed.";
         }
-        return "No dedicated quiet space is listed; plan a nearby reset point.";
+
+        return "No dedicated quiet space is currently available.";
     }
 }

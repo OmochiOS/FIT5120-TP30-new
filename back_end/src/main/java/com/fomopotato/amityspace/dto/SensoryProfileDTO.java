@@ -103,7 +103,7 @@ public class SensoryProfileDTO {
         this.predictabilityDescription = predictabilityDescription;
     }
 
-    public boolean isQuietSpaceAvailable() {
+    public boolean getQuietSpaceAvailable() {
         return quietSpaceAvailable;
     }
 

@@ -1,10 +1,8 @@
 package com.fomopotato.amityspace.controller;
 
-import com.fomopotato.amityspace.dto.LocationDetailDTO;
 import com.fomopotato.amityspace.dto.LocationSummaryDTO;
 import com.fomopotato.amityspace.dto.PreferenceRequestDTO;
 import com.fomopotato.amityspace.service.LocationPreferenceService;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
