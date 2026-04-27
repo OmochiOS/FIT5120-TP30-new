@@ -1,20 +1,26 @@
 package com.fomopotato.amityspace.service;
 
 import com.fomopotato.amityspace.dto.PreferenceRequestDTO;
+import com.fomopotato.amityspace.entity.LocationEntity;
+import com.fomopotato.amityspace.entity.SensoryProfileEntity;
 import com.fomopotato.amityspace.enums.CrowdLevel;
 import com.fomopotato.amityspace.enums.PlaceType;
 import com.fomopotato.amityspace.enums.PredictabilityLevel;
 import com.fomopotato.amityspace.enums.SensoryLevel;
-import com.fomopotato.amityspace.model.Location;
-import com.fomopotato.amityspace.model.SensoryProfile;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LocationFilterService {
 
-    public boolean matchesPreferences(Location location, SensoryProfile sensoryProfile, PreferenceRequestDTO request) {
+    public boolean matchesPreferences(LocationEntity location,
+                                      SensoryProfileEntity sensoryProfile,
+                                      PreferenceRequestDTO request) {
         if (request == null) {
             return true;
+        }
+
+        if (location == null || sensoryProfile == null) {
+            return false;
         }
 
         if (Boolean.TRUE.equals(request.getLowCrowd()) && location.getCrowdLevel() != CrowdLevel.LOW) {
@@ -36,14 +42,14 @@ public class LocationFilterService {
                 return false;
             }
         }
-        
-        if (Boolean.TRUE.equals(request.getQuietSpaceRequired()) && !sensoryProfile.isQuietSpaceAvailable()) {
+
+        if (Boolean.TRUE.equals(request.getQuietSpaceRequired()) && !Boolean.TRUE.equals(sensoryProfile.getQuietSpaceAvailable())) {
             return false;
         }
 
         if (Boolean.TRUE.equals(request.getPredictableEnvironment())) {
             PredictabilityLevel level = sensoryProfile.getPredictabilityLevel();
-            
+
             if (level != PredictabilityLevel.HIGH && level != PredictabilityLevel.MODERATE) {
                 return false;
             }

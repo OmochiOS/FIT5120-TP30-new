@@ -1,10 +1,9 @@
 package com.fomopotato.amityspace.service;
 
-import com.fomopotato.amityspace.dto.LocationDetailDTO;
 import com.fomopotato.amityspace.dto.LocationSummaryDTO;
 import com.fomopotato.amityspace.dto.PreferenceRequestDTO;
-import com.fomopotato.amityspace.model.Location;
-import com.fomopotato.amityspace.model.SensoryProfile;
+import com.fomopotato.amityspace.entity.LocationEntity;
+import com.fomopotato.amityspace.entity.SensoryProfileEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,33 +22,38 @@ public class LocationPreferenceService {
     }
 
     public List<LocationSummaryDTO> matchLocations(PreferenceRequestDTO request) {
-        return processLocations(request, false);
+        List<LocationSummaryDTO> results = new ArrayList<>();
+
+        for (LocationEntity location : locationQueryService.getAllLocationEntities()) {
+            SensoryProfileEntity sensoryProfile = locationQueryService.getSensoryProfileForLocation(location);
+
+            boolean matchesPreferences = locationFilterService.matchesPreferences(
+                    location,
+                    sensoryProfile,
+                    request
+            );
+
+            results.add(locationQueryService.buildLocationSummary(location, matchesPreferences));
+        }
+
+        return results;
     }
 
     public List<LocationSummaryDTO> filterLocations(PreferenceRequestDTO request) {
-        return processLocations(request, true);
-    }
-
-    public LocationDetailDTO getLocationDetailById(Long id, PreferenceRequestDTO request) {
-        Location location = locationQueryService.getLocationById(id);
-        SensoryProfile sensoryProfile = locationQueryService.getSensoryProfileForLocation(location);
-        boolean matchesPreferences = locationFilterService.matchesPreferences(location, sensoryProfile, request);
-
-        return locationQueryService.buildLocationDetail(location, sensoryProfile, matchesPreferences);
-    }
-
-    private List<LocationSummaryDTO> processLocations(PreferenceRequestDTO request, boolean filterOnly) {
         List<LocationSummaryDTO> results = new ArrayList<>();
 
-        for (Location location : locationQueryService.getAllLocationModels()) {
-            SensoryProfile sensoryProfile = locationQueryService.getSensoryProfileForLocation(location);
-            boolean matchesPreferences = locationFilterService.matchesPreferences(location, sensoryProfile, request);
+        for (LocationEntity location : locationQueryService.getAllLocationEntities()) {
+            SensoryProfileEntity sensoryProfile = locationQueryService.getSensoryProfileForLocation(location);
 
-            if (filterOnly && !matchesPreferences) {
-                continue;
+            boolean matchesPreferences = locationFilterService.matchesPreferences(
+                    location,
+                    sensoryProfile,
+                    request
+            );
+
+            if (matchesPreferences) {
+                results.add(locationQueryService.buildLocationSummary(location, true));
             }
-
-            results.add(locationQueryService.buildLocationSummary(location, matchesPreferences));
         }
 
         return results;
