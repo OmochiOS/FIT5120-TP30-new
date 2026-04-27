@@ -1,0 +1,55 @@
+{
+  "productName": "AmitySpace",
+  "version": "2026-04-01",
+  "mvpScope": {
+    "mapPage": true,
+    "locationDetail": true,
+    "preferences": true,
+    "prediction": false,
+    "about": false,
+    "dataStory": false,
+    "formalBackend": false
+  },
+  "statusRules": {
+    "refreshIntervalMinutes": 15,
+    "freshWithinMinutes": 30,
+    "dataStatusValues": ["loading", "fresh", "stale", "error", "empty"],
+    "fallbackCopy": {
+      "stale": "Data Stale",
+      "error": "Data temporarily unavailable",
+      "empty": "No locations match your current filters."
+    }
+  },
+  "crowdLevelRules": {
+    "canonicalValues": ["low", "moderate", "high"],
+    "uiLabels": {
+      "low": "Calm",
+      "moderate": "Manageable",
+      "high": "Busy"
+    },
+    "recommendedStrategy": "historical_percentile_by_sensor",
+    "recommendedBands": {
+      "low": "<= sensor-specific p40",
+      "moderate": "> sensor-specific p40 and <= sensor-specific p80",
+      "high": "> sensor-specific p80"
+    },
+    "fallbackStrategy": "Until historical calibration is implemented, rely on editor-seeded labels or simple runtime heuristics rather than exposing prediction fields."
+  },
+  "filterAndSortOrder": [
+    "searchText",
+    "categoryFilter",
+    "preferenceFilter",
+    "crowdSuitability",
+    "priority"
+  ],
+  "preferenceRule": {
+    "storage": "localStorage",
+    "collectsPII": false,
+    "serverSideProfile": false
+  },
+  "predictionRule": {
+    "enabledInMvp": false,
+    "runtimeFieldsAllowed": false,
+    "notes": "Historical datasets may be referenced later, but prediction-specific outputs are deferred."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "productName": "AmitySpace",
+  "version": "2026-04-01",
+  "footerAttribution": "Contains data sourced from the City of Melbourne Open Data Portal, licensed under CC BY 4.0.",
+  "privacyNotice": "AmitySpace does not require login and does not store personally identifiable information on servers. User preferences are stored only in the browser on the current device.",
+  "derivedDataNotice": "Crowd labels, suitability messaging, and sensory summaries are derived views created by AmitySpace and are not official City of Melbourne classifications.",
+  "accessibilityNotice": "Status information must not rely on colour alone and should remain understandable with text labels and screen readers.",
+  "license": {
+    "name": "CC BY 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
+  }
+}

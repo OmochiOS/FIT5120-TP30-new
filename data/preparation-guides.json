@@ -1,0 +1,70 @@
+{
+  "productName": "AmitySpace",
+  "version": "2026-04-01",
+  "guides": [
+    {
+      "locationId": "flagstaff-gardens",
+      "sensoryToolsToBring": ["water bottle", "sun protection", "headphones optional"],
+      "arrivalTip": "Weekday mornings are the safest default for a low-demand visit.",
+      "escapeRoute": "Exit toward William Street or Flagstaff Station if nearby foot traffic starts building.",
+      "recoveryOption": "Use outer bench areas before leaving the precinct entirely.",
+      "visitStyle": "Short loop walk with optional seated pause."
+    },
+    {
+      "locationId": "state-library-victoria",
+      "sensoryToolsToBring": ["headphones", "water bottle", "comfort item"],
+      "arrivalTip": "Start with a quieter reading-room floor rather than the main public hall.",
+      "escapeRoute": "Return to the foyer or move between study areas if one section becomes busier.",
+      "recoveryOption": "Use a quiet study zone or a short break outside the building entrance.",
+      "visitStyle": "Purpose-led indoor visit with predictable route."
+    },
+    {
+      "locationId": "carlton-gardens",
+      "sensoryToolsToBring": ["water bottle", "hat", "headphones optional"],
+      "arrivalTip": "Use the southern garden entry to avoid museum-side crowd spikes.",
+      "escapeRoute": "Move to peripheral garden paths if the central section becomes active.",
+      "recoveryOption": "Pause in a quieter shaded area before deciding whether to continue.",
+      "visitStyle": "Slow outdoor walk with flexible stopping points."
+    },
+    {
+      "locationId": "treasury-gardens",
+      "sensoryToolsToBring": ["water bottle", "hat", "headphones optional"],
+      "arrivalTip": "Aim for morning or early afternoon outside major city-event times.",
+      "escapeRoute": "Exit toward the quieter east-side edges if city noise carries in.",
+      "recoveryOption": "Use garden seating as a low-demand reset point.",
+      "visitStyle": "Short reset visit close to public transport."
+    },
+    {
+      "locationId": "docklands-library",
+      "sensoryToolsToBring": ["headphones", "water bottle", "device charger"],
+      "arrivalTip": "Choose quiet study zones before school-finish periods if possible.",
+      "escapeRoute": "Step outside to the waterfront promenade if indoor activity picks up.",
+      "recoveryOption": "Use harbour-side seating or a quieter upper-level area.",
+      "visitStyle": "Indoor low-stimulation study or recovery visit."
+    },
+    {
+      "locationId": "fitzroy-gardens",
+      "sensoryToolsToBring": ["water bottle", "hat", "headphones optional"],
+      "arrivalTip": "Early mornings and late afternoons are the default low-demand window.",
+      "escapeRoute": "Use outer walking paths to bypass tourist clusters.",
+      "recoveryOption": "Pause in a shaded section rather than staying on the main tourist route.",
+      "visitStyle": "Calm walking visit with flexible duration."
+    },
+    {
+      "locationId": "federation-square",
+      "sensoryToolsToBring": ["noise-cancelling headphones", "water bottle", "exit plan"],
+      "arrivalTip": "Avoid event times and start only if current crowd conditions are acceptable.",
+      "escapeRoute": "Use station access points, side laneways, or the river edge as immediate fallback routes.",
+      "recoveryOption": "Shift to a nearby quieter edge rather than staying in the plaza center.",
+      "visitStyle": "Short, planned pass-through rather than open-ended stay."
+    },
+    {
+      "locationId": "melbourne-central",
+      "sensoryToolsToBring": ["noise-cancelling headphones", "water bottle", "phone with route plan"],
+      "arrivalTip": "Use only for targeted visits and avoid peak retail hours where possible.",
+      "escapeRoute": "Leave via the nearest street-level exit if lighting and announcements become too intense.",
+      "recoveryOption": "Recover outside the complex before deciding whether to re-enter.",
+      "visitStyle": "Fast task-based visit with pre-planned exit."
+    }
+  ]
+}

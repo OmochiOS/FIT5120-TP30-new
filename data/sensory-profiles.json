@@ -1,0 +1,206 @@
+{
+  "productName": "AmitySpace",
+  "version": "2026-04-01",
+  "profiles": [
+    {
+      "locationId": "flagstaff-gardens",
+      "noiseLevel": "low",
+      "lightingType": "natural",
+      "crowdPredictability": "stable",
+      "hasQuietArea": true,
+      "escapeRouteNotes": "Move toward the park edge on William Street or toward Flagstaff Station for a fast exit.",
+      "sensoryFriendlyNotes": "Open lawn areas and bench-lined paths make this one of the calmest low-demand options for a quiet visit.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Place confirmation"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "state-library-victoria",
+      "noiseLevel": "low",
+      "lightingType": "controlled-indoor",
+      "crowdPredictability": "stable",
+      "hasQuietArea": true,
+      "escapeRouteNotes": "Use the quieter reading-room floors or move back toward the Swanston Street foyer if the main hall becomes too active.",
+      "sensoryFriendlyNotes": "Quiet study norms, indoor shelter, and central access make this a strong low-stimulation library option.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Place confirmation"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "carlton-gardens",
+      "noiseLevel": "low",
+      "lightingType": "natural",
+      "crowdPredictability": "stable",
+      "hasQuietArea": true,
+      "escapeRouteNotes": "Move deeper into the garden grid or toward the museum-side edges to step away from passing foot traffic.",
+      "sensoryFriendlyNotes": "Natural cover and multiple open paths support slow, low-stimulation visits even when nearby museum activity increases.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Uses Carlton Gardens South landmark entry"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "treasury-gardens",
+      "noiseLevel": "low",
+      "lightingType": "natural",
+      "crowdPredictability": "stable",
+      "hasQuietArea": true,
+      "escapeRouteNotes": "Shift toward quieter edge paths near Wellington Parade if city noise carries in.",
+      "sensoryFriendlyNotes": "Good for short reset visits because users can stay outdoors while still remaining close to central-city transport.",
+      "sourceReferences": [
+        {
+          "type": "manual-research",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Prepared from current project guidance and venue context."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Place confirmation"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "docklands-library",
+      "noiseLevel": "low",
+      "lightingType": "mixed",
+      "crowdPredictability": "stable",
+      "hasQuietArea": true,
+      "escapeRouteNotes": "If activity increases, move toward upper-level study areas or step outside to the quieter harbour-side promenade.",
+      "sensoryFriendlyNotes": "A calm indoor library option with quiet zones and close sensor coverage for visit planning.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Library at the Dock indoor sensors confirm the site and its coordinates"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "fitzroy-gardens",
+      "noiseLevel": "low",
+      "lightingType": "natural",
+      "crowdPredictability": "stable",
+      "hasQuietArea": true,
+      "escapeRouteNotes": "Use the quieter outer paths or conservatory-side edges when tourist groups gather in the central paths.",
+      "sensoryFriendlyNotes": "Best positioned as a calm outdoor option with shade and predictable walking loops.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Place confirmation"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "federation-square",
+      "noiseLevel": "moderate",
+      "lightingType": "mixed",
+      "crowdPredictability": "event-sensitive",
+      "hasQuietArea": false,
+      "escapeRouteNotes": "If the plaza becomes overwhelming, move toward surrounding laneways, station access points, or the river edge for a break.",
+      "sensoryFriendlyNotes": "This works best as a higher-stimulation comparison point rather than a default recommendation for sensitive users.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Place confirmation"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    },
+    {
+      "locationId": "melbourne-central",
+      "noiseLevel": "high",
+      "lightingType": "bright-artificial",
+      "crowdPredictability": "variable",
+      "hasQuietArea": false,
+      "escapeRouteNotes": "If the main retail levels are too intense, exit quickly to street level or station corridors rather than remaining in the central atrium.",
+      "sensoryFriendlyNotes": "This is best framed as a cautionary location because lighting, announcements, and crowd flow can become intense quickly.",
+      "sourceReferences": [
+        {
+          "type": "editorial-reference",
+          "label": "Editorial profile reference",
+          "url": null,
+          "notes": "Aligned with the current product profile and guidance copy."
+        },
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Place confirmation"
+        }
+      ],
+      "lastReviewedAt": "2026-04-01",
+      "verificationStatus": "reviewed"
+    }
+  ]
+}

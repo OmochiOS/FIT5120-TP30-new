@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "datasetId": "pedestrian-counting-system-past-hour-counts-per-minute",
+      "accessPattern": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/pedestrian-counting-system-past-hour-counts-per-minute/exports/json?lang=en&timezone=Australia%2FMelbourne"
+    },
+    {
+      "datasetId": "pedestrian-counting-system-sensor-locations",
+      "accessPattern": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/pedestrian-counting-system-sensor-locations/exports/json?lang=en&timezone=Australia%2FMelbourne"
+    },
+    {
+      "datasetId": "landmarks-and-places-of-interest-including-schools-theatres-health-services-spor",
+      "accessPattern": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/records?limit=100&offset={offset}"
+    },
+    {
+      "datasetId": "pedestrian-counting-system-monthly-counts-per-hour",
+      "accessPattern": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/pedestrian-counting-system-monthly-counts-per-hour/exports/json?lang=en&timezone=Australia%2FMelbourne"
+    },
+    {
+      "datasetId": "microclimate-sensor-readings",
+      "accessPattern": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/microclimate-sensors-data/records?limit=5"
+    }
+  ]
+}

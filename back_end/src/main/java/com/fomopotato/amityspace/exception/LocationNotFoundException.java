@@ -1,0 +1,7 @@
+package com.fomopotato.amityspace.exception;
+
+public class LocationNotFoundException extends RuntimeException {
+    public LocationNotFoundException(Long id) {
+        super("Location not found with id: " + id);
+    }
+}

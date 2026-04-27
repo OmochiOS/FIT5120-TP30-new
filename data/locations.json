@@ -1,0 +1,230 @@
+{
+  "productName": "AmitySpace",
+  "version": "2026-04-01",
+  "locations": [
+    {
+      "locationId": "flagstaff-gardens",
+      "name": "Flagstaff Gardens",
+      "category": "Park",
+      "displayType": "Park",
+      "coordinates": {
+        "lat": -37.8111222889277,
+        "lon": 144.954696055235
+      },
+      "sensorIds": [109, 132, 107],
+      "addressOrArea": "West Melbourne / William Street precinct",
+      "priority": 1,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Official landmark entry and coordinates"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 109, 132, 107"
+        }
+      ]
+    },
+    {
+      "locationId": "state-library-victoria",
+      "name": "State Library Victoria",
+      "category": "Library",
+      "displayType": "Library",
+      "coordinates": {
+        "lat": -37.8099852201226,
+        "lon": 144.964330322397
+      },
+      "sensorIds": [66, 187, 3],
+      "addressOrArea": "328 Swanston Street, Melbourne CBD",
+      "priority": 2,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Official landmark entry and coordinates"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 66, 187, 3"
+        }
+      ]
+    },
+    {
+      "locationId": "carlton-gardens",
+      "name": "Carlton Gardens",
+      "category": "Park",
+      "displayType": "Garden",
+      "coordinates": {
+        "lat": -37.8060684577258,
+        "lon": 144.971266479841
+      },
+      "sensorIds": [40, 188, 20],
+      "addressOrArea": "Carlton Gardens South, Carlton",
+      "priority": 3,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Uses the official Carlton Gardens South landmark entry"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 40, 188, 20"
+        }
+      ]
+    },
+    {
+      "locationId": "treasury-gardens",
+      "name": "Treasury Gardens",
+      "category": "Park",
+      "displayType": "Garden",
+      "coordinates": {
+        "lat": -37.8143993575938,
+        "lon": 144.975952335785
+      },
+      "sensorIds": [75, 94, 17],
+      "addressOrArea": "East Melbourne / Wellington Parade precinct",
+      "priority": 4,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Official landmark entry and coordinates"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 75, 94, 17"
+        }
+      ]
+    },
+    {
+      "locationId": "docklands-library",
+      "name": "Docklands Library",
+      "category": "Library",
+      "displayType": "Library",
+      "coordinates": {
+        "lat": -37.82009083,
+        "lon": 144.940347225
+      },
+      "sensorIds": [92, 91, 130],
+      "addressOrArea": "107 Victoria Harbour Promenade, Docklands",
+      "priority": 5,
+      "verificationStatus": "reviewed",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Coordinates are centered from official Library at the Dock sensor positions 91 and 92"
+        },
+        {
+          "type": "manual-research",
+          "label": "Library at the Dock public address",
+          "url": null,
+          "notes": "Address is based on the venue's public listing."
+        }
+      ]
+    },
+    {
+      "locationId": "fitzroy-gardens",
+      "name": "Fitzroy Gardens",
+      "category": "Park",
+      "displayType": "Park",
+      "coordinates": {
+        "lat": -37.8129616331579,
+        "lon": 144.980455714669
+      },
+      "sensorIds": [94, 95, 116],
+      "addressOrArea": "East Melbourne",
+      "priority": 6,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Official landmark entry and coordinates"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 94, 95, 116"
+        }
+      ]
+    },
+    {
+      "locationId": "federation-square",
+      "name": "Federation Square",
+      "category": "Community Centre",
+      "displayType": "Pedestrian Zone",
+      "coordinates": {
+        "lat": -37.8178516571684,
+        "lon": 144.968963600783
+      },
+      "sensorIds": [72, 5, 161],
+      "addressOrArea": "Swanston Street and Flinders Street, Melbourne CBD",
+      "priority": 7,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Official landmark entry and coordinates"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 72, 5, 161"
+        }
+      ]
+    },
+    {
+      "locationId": "melbourne-central",
+      "name": "Melbourne Central",
+      "category": "Community Centre",
+      "displayType": "Pedestrian Zone",
+      "coordinates": {
+        "lat": -37.8105371797142,
+        "lon": 144.962749729496
+      },
+      "sensorIds": [62, 181, 55],
+      "addressOrArea": "211 La Trobe Street, Melbourne CBD",
+      "priority": 8,
+      "verificationStatus": "verified",
+      "sourceReferences": [
+        {
+          "type": "official-dataset",
+          "label": "City of Melbourne landmarks dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/",
+          "notes": "Uses the official Melbourne Central landmark entry"
+        },
+        {
+          "type": "official-dataset",
+          "label": "Pedestrian sensor locations dataset",
+          "url": "https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-counting-system-sensor-locations/",
+          "notes": "Nearest active sensors: 62, 181, 55"
+        }
+      ]
+    }
+  ]
+}

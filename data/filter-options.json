@@ -1,0 +1,41 @@
+{
+  "productName": "AmitySpace",
+  "version": "2026-04-01",
+  "categoryFilters": [
+    { "value": "All", "label": "All" },
+    { "value": "Park", "label": "Park" },
+    { "value": "Library", "label": "Library" },
+    { "value": "Museum", "label": "Museum" },
+    { "value": "Community Centre", "label": "Community Centre" }
+  ],
+  "displayTypeMappings": [
+    {
+      "displayType": "Pedestrian Zone",
+      "category": "Community Centre",
+      "notes": "Mapped into Community Centre for the current filter set."
+    },
+    {
+      "displayType": "Garden",
+      "category": "Park",
+      "notes": "Mapped into Park for the current filter set."
+    }
+  ],
+  "defaultPreferences": {
+    "preferredCrowdLevel": "any",
+    "noiseSensitivity": "moderate",
+    "lightSensitivity": "moderate",
+    "needsQuietArea": false,
+    "darkModeEnabled": false
+  },
+  "preferenceOptions": {
+    "preferredCrowdLevel": ["any", "low", "moderate", "high"],
+    "noiseSensitivity": ["low", "moderate", "high"],
+    "lightSensitivity": ["low", "moderate", "high"],
+    "needsQuietArea": [true, false],
+    "darkModeEnabled": [true, false]
+  },
+  "quickFilterOverlay": {
+    "sensoryNeeds": ["Noise", "Lighting", "Crowds", "Unpredictability"],
+    "activityOptions": ["Outdoor", "Cultural", "Social", "Active", "Any"]
+  }
+}
