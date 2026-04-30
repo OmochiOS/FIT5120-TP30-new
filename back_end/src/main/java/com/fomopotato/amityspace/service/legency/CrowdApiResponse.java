@@ -1,4 +1,4 @@
-package com.fomopotato.amityspace.integration.dto;
+package com.fomopotato.amityspace.service.legency;
 
 public class CrowdApiResponse {
     private final Long locationId;

@@ -11,11 +11,11 @@ public class CrowdLevelCalculator {
             return CrowdLevel.MODERATE;
         }
 
-        if (count < 50) {
+        if (count <= 68) {
             return CrowdLevel.LOW;
         }
 
-        if (count < 120) {
+        if (count <= 316) {
             return CrowdLevel.MODERATE;
         }
 
