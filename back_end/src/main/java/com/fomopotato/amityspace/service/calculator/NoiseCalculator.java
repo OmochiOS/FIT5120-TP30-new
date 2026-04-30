@@ -2,8 +2,9 @@ package com.fomopotato.amityspace.service.calculator;
 
 import com.fomopotato.amityspace.data.record.LocationSensorMappingRecord;
 import com.fomopotato.amityspace.enums.SensoryLevel;
-import com.fomopotato.amityspace.integration.dto.NoiseApiResponse;
 import com.fomopotato.amityspace.model.Location;
+import com.fomopotato.amityspace.service.legency.NoiseApiResponse;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

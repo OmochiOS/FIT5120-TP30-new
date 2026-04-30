@@ -2,9 +2,7 @@ package com.fomopotato.amityspace.service.legency;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fomopotato.amityspace.integration.dto.CrowdApiResponse;
-import com.fomopotato.amityspace.integration.dto.LocationApiResponse;
-import com.fomopotato.amityspace.integration.dto.NoiseApiResponse;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
