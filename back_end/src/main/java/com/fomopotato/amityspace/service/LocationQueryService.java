@@ -69,6 +69,7 @@ public class LocationQueryService {
                 location.getCrowdLevel(),
                 location.getStatusLabel(),
                 location.getPlaceType(),
+                location.getDescription(),
                 matchesPreferences
         );
     }

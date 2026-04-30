@@ -11,13 +11,14 @@ public class LocationSummaryDTO {
     private CrowdLevel crowdLevel;
     private String statusLabel;
     private PlaceType placeType;
+    private String description;
     private boolean matchesPreferences; 
 
     public LocationSummaryDTO() {
     }
 
     public LocationSummaryDTO(Long id, String name, double latitude, double longitude,
-                              CrowdLevel crowdLevel, String statusLabel, PlaceType placeType, boolean matchesPreferences) {
+                              CrowdLevel crowdLevel, String statusLabel, PlaceType placeType, String description, boolean matchesPreferences) {
         this.id = id;
         this.name = name;
         this.latitude = latitude;
@@ -25,6 +26,7 @@ public class LocationSummaryDTO {
         this.crowdLevel = crowdLevel;
         this.statusLabel = statusLabel;
         this.matchesPreferences = matchesPreferences;
+        this.description = description;
         this.placeType = placeType;
     }
 
@@ -90,5 +92,13 @@ public class LocationSummaryDTO {
 
     public void setPlaceType(PlaceType placeType){
         this.placeType = placeType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

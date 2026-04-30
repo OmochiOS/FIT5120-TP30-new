@@ -3,6 +3,7 @@ package com.fomopotato.amityspace.entity;
 import com.fomopotato.amityspace.enums.CrowdLevel;
 import com.fomopotato.amityspace.enums.PlaceType;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -36,11 +37,14 @@ public class LocationEntity {
     @OneToOne(mappedBy = "location", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private SensoryProfileEntity sensoryProfile;
 
+    @Column(length = 500)
+    private String description;
+
     public LocationEntity() {
     }
 
     public LocationEntity(Long id, String name, Double latitude, Double longitude,
-                          CrowdLevel crowdLevel, String statusLabel, PlaceType placeType) {
+                          CrowdLevel crowdLevel, String statusLabel, String description, PlaceType placeType) {
         this.id = id;
         this.name = name;
         this.latitude = latitude;
@@ -48,6 +52,7 @@ public class LocationEntity {
         this.crowdLevel = crowdLevel;
         this.statusLabel = statusLabel;
         this.placeType = placeType;
+        this.description = description;
     }
 
     public Long getId() {
@@ -112,5 +117,13 @@ public class LocationEntity {
 
     public void setSensoryProfile(SensoryProfileEntity sensoryProfile) {
         this.sensoryProfile = sensoryProfile;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
