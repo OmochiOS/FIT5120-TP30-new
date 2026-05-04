@@ -23,10 +23,7 @@ function bootstrap() {
   const locationsStore = useLocationsStore(pinia);
 
   void locationsStore.hydrateLocations().then(() =>
-    Promise.all([
-      locationsStore.refreshLiveData(),
-      locationsStore.hydrateSearchCoverage(),
-    ]),
+    locationsStore.refreshLiveData(),
   );
 
   if (typeof window !== 'undefined') {

@@ -20,22 +20,10 @@ vi.mock('@/utils/prediction', async () => {
   };
 });
 
-vi.mock('@/utils/search-coverage', async () => {
-  const actual = await vi.importActual<typeof import('@/utils/search-coverage')>(
-    '@/utils/search-coverage',
-  );
-
-  return {
-    ...actual,
-    fetchSearchCoveragePlaces: vi.fn(),
-  };
-});
-
 import { useLocationsStore } from '@/stores/locations';
 import { fetchLiveLocationRefresh } from '@/utils/live-data';
 import { fetchLocationPrediction } from '@/utils/prediction';
 import { fetchAutomatedProfileRefresh } from '@/utils/profile-enrichment';
-import { fetchSearchCoveragePlaces } from '@/utils/search-coverage';
 
 describe('locations store state handling', () => {
   beforeEach(() => {
@@ -60,27 +48,6 @@ describe('locations store state handling', () => {
     expect(store.liveDataStatus).toBe('fresh');
     expect(store.liveDataSyncedAt).toBe('2026-04-01T15:25:00+11:00');
     expect(store.liveDataRefreshing).toBe(false);
-  });
-
-  it('explains when only broader official place matches are available', async () => {
-    vi.mocked(fetchSearchCoveragePlaces).mockResolvedValue([
-      {
-        name: 'Parliament Railway Station',
-        theme: 'Transport',
-        subTheme: 'Railway Station',
-        coordinates: { lat: -37.8116, lon: 144.9730 },
-      },
-    ]);
-
-    const store = useLocationsStore();
-    await store.hydrateSearchCoverage();
-    store.setSearchText('Parliament');
-
-    expect(store.filteredLocations).toEqual([]);
-    expect(store.expandedSearchResults).toHaveLength(1);
-    expect(store.searchCoverageMessage).toBe(
-      'No featured map locations match this query. Showing broader official place matches below.',
-    );
   });
 
   it('hydrates historical predictions for a location', async () => {

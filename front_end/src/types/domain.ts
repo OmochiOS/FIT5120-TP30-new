@@ -25,7 +25,11 @@ export interface SensorySignal {
 export interface SensoryProfile {
   locationId: string;
   noiseLevel: CrowdLevel;
+  noiseDb: number | null;
+  noiseDescription: string | null;
   lightingType: LightingType;
+  lightingLevel: string | null;
+  lightingDescription: string | null;
   crowdPredictability: CrowdPredictability;
   hasQuietArea: boolean;
   escapeRouteNotes: string;
@@ -88,6 +92,7 @@ export interface Location {
   detailHydrated?: boolean;
   goodToKnowItems?: GoodToKnowItem[];
   bestTimesSummary?: string | null;
+  description?: string | null;
 }
 
 export interface MapQuickFilters {

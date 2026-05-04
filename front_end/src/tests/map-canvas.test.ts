@@ -8,6 +8,7 @@ import { seedLocations } from '@/utils/adapters';
 const leafletState = vi.hoisted(() => ({
   push: vi.fn(),
   fitBounds: vi.fn(),
+  flyTo: vi.fn(),
   invalidateSize: vi.fn(),
   remove: vi.fn(),
   getZoom: vi.fn(() => 13),
@@ -31,6 +32,7 @@ vi.mock('leaflet', () => {
   const mapInstance = {
     setView: vi.fn(() => mapInstance),
     fitBounds: leafletState.fitBounds,
+    flyTo: leafletState.flyTo,
     invalidateSize: leafletState.invalidateSize,
     remove: leafletState.remove,
     getZoom: leafletState.getZoom,
@@ -84,6 +86,7 @@ describe('MapCanvas', () => {
   beforeEach(() => {
     leafletState.push.mockReset();
     leafletState.fitBounds.mockReset();
+    leafletState.flyTo.mockReset();
     leafletState.invalidateSize.mockReset();
     leafletState.remove.mockReset();
     leafletState.getZoom.mockReset();

@@ -20,6 +20,7 @@ interface BackendLocationSummary {
   crowdLevel: BackendCrowdLevel;
   statusLabel: string | null;
   placeType: BackendPlaceType;
+  description: string | null;
   matchesPreferences: boolean;
 }
 
@@ -313,7 +314,11 @@ function buildSummaryLocation(summary: BackendLocationSummary): Location {
     sensoryProfile: {
       locationId,
       noiseLevel: crowdLevel,
+      noiseDb: null,
+      noiseDescription: null,
       lightingType: summary.placeType === 'OUTDOOR' ? 'natural' : 'mixed',
+      lightingLevel: null,
+      lightingDescription: null,
       crowdPredictability: crowdLevel === 'high' ? 'event-sensitive' : crowdLevel === 'moderate' ? 'variable' : 'stable',
       hasQuietArea: false,
       escapeRouteNotes: DEFAULT_ESCAPE,
@@ -330,6 +335,7 @@ function buildSummaryLocation(summary: BackendLocationSummary): Location {
     detailHydrated: false,
     goodToKnowItems: buildGoodToKnowItems(null),
     bestTimesSummary: DEFAULT_BEST_TIMES,
+    description: summary.description,
   };
 }
 
@@ -372,7 +378,11 @@ function mergeDetailLocation(summaryLocation: Location, detail: BackendLocationD
     sensoryProfile: {
       locationId,
       noiseLevel: toNoiseLevel(sensoryProfile?.noiseLevel ?? null),
+      noiseDb: sensoryProfile?.noiseDb ?? null,
+      noiseDescription: noiseDescription || null,
       lightingType: toLightingType(sensoryProfile?.lightingLevel ?? null, detail.placeType),
+      lightingLevel: sensoryProfile?.lightingLevel ?? null,
+      lightingDescription: sensoryProfile?.lightingDescription ?? null,
       crowdPredictability: toCrowdPredictability(sensoryProfile?.predictabilityLevel ?? null),
       hasQuietArea: Boolean(sensoryProfile?.quietSpaceAvailable),
       escapeRouteNotes: quietSpaceDescription || DEFAULT_ESCAPE,

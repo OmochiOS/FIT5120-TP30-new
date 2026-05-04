@@ -21,7 +21,7 @@ interface RawLocationsFile {
 }
 
 interface RawSensoryProfilesFile {
-  profiles: SensoryProfile[];
+  profiles: Omit<SensoryProfile, 'noiseDb' | 'noiseDescription' | 'lightingLevel' | 'lightingDescription'>[];
 }
 
 interface RawPreparationGuidesFile {
@@ -160,7 +160,7 @@ export const seedLocations: Location[] = rawLocations.locations.map((location) =
   return {
     ...location,
     priority: LIST_ORDER[location.locationId] ?? location.priority,
-    sensoryProfile,
+    sensoryProfile: { ...sensoryProfile, noiseDb: null, noiseDescription: null, lightingLevel: null, lightingDescription: null },
     preparationGuide,
     crowdSnapshot: buildSnapshot(location.locationId, location.sensorIds),
     mapPoint: MAP_POINTS[location.locationId] ?? { x: 50, y: 50 },
