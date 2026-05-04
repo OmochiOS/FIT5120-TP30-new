@@ -1,16 +1,16 @@
 <template>
   <section class="space-y-3.5">
-    <p class="text-[18px] font-semibold text-sense-ink dark:text-white">
+    <p class="text-[20px] font-semibold tracking-tight text-sense-ink dark:text-white">
       Best Times to Visit
     </p>
 
-    <div class="detail-surface detail-best-times rounded-[12px] border border-sense-teal/10 bg-white px-4 py-4 shadow-[0_12px_24px_-20px_rgba(16,74,85,0.35)] dark:border-white/8 dark:bg-[#16252f]/92 md:px-4.5">
+    <div class="detail-surface detail-best-times rounded-[12px] border border-sense-teal/10 bg-white px-4 py-4 shadow-[0_12px_24px_-20px_rgba(16,74,85,0.35)] dark:border-white/8 dark:bg-[#16252f]/90 md:px-4.5">
       <div class="flex flex-wrap gap-2">
         <button
           v-for="day in days"
           :key="day"
           type="button"
-          class="h-8 min-w-[54px] rounded-[8px] border px-3 text-[11px] font-medium transition"
+          class="h-8 min-w-[54px] rounded-[8px] border px-3 text-[12px] font-medium transition"
           :class="selectedDay === day
             ? 'border-sense-teal bg-sense-teal text-white dark:border-sense-mint dark:bg-sense-mint dark:text-sense-night'
             : 'detail-day-button border-sense-teal/12 bg-white text-sense-ink/72 dark:border-white/10 dark:bg-[#1b2b35] dark:text-slate-100'"
@@ -29,7 +29,7 @@
             :class="toneClass(segment.level)"
           />
         </div>
-        <div class="detail-axis mt-1 flex items-center justify-between text-[10px] text-sense-ink/44 dark:text-slate-200">
+        <div class="detail-axis mt-1.5 flex items-center justify-between text-[11px] font-medium text-sense-ink/50 dark:text-slate-200">
           <span>7am</span>
           <span>9pm</span>
         </div>
@@ -39,7 +39,7 @@
         <MapLegend variant="detail" />
       </div>
 
-      <p class="detail-copy mt-4 text-[13px] font-medium text-sense-ink/66 dark:text-slate-100">
+      <p class="detail-copy mt-4 text-[14px] font-medium leading-relaxed text-sense-ink/70 dark:text-slate-100">
         {{ selectedPlan.quietestNote }}
       </p>
     </div>

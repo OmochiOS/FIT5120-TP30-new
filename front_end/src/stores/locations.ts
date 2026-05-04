@@ -5,7 +5,6 @@ import type {
   DataStatus,
   Location,
   PredictionSnapshot,
-  SearchCoveragePlace,
 } from '@/types/domain';
 import { usePreferencesStore } from '@/stores/preferences';
 import { searchAndSortLocations } from '@/utils/filters';
@@ -14,7 +13,6 @@ import { seedLocations, statusRules } from '@/utils/adapters';
 import { fetchLiveLocationRefresh } from '@/utils/live-data';
 import { fetchAutomatedProfileRefresh } from '@/utils/profile-enrichment';
 import { fetchLocationPrediction } from '@/utils/prediction';
-import { fetchSearchCoveragePlaces, filterCoveragePlaces } from '@/utils/search-coverage';
 
 function minutesSince(observedAt: string, now = Date.now()): number {
   const observedAtMs = Date.parse(observedAt);
@@ -63,8 +61,6 @@ export const useLocationsStore = defineStore('locations', {
     liveDataStatus: 'loading' as DataStatus,
     liveDataSyncedAt: null as string | null,
     liveDataRefreshing: false,
-    searchCoveragePlaces: [] as SearchCoveragePlace[],
-    searchCoverageStatus: 'loading' as DataStatus,
     predictionSnapshots: {} as Record<string, PredictionSnapshot | undefined>,
     predictionRefreshing: {} as Record<string, boolean>,
     detailRefreshing: {} as Record<string, boolean>,
@@ -83,17 +79,6 @@ export const useLocationsStore = defineStore('locations', {
     getLocationById: (state) => {
       return (locationId: string) =>
         state.locations.find((location) => location.locationId === locationId);
-    },
-    expandedSearchResults(state): SearchCoveragePlace[] {
-      const excludedSeedNames = new Set(
-        state.locations.map((location) => location.name.trim().toLowerCase()),
-      );
-
-      return filterCoveragePlaces(
-        state.searchCoveragePlaces,
-        state.searchText,
-        excludedSeedNames,
-      );
     },
     getPredictionSnapshot: (state) => {
       return (locationId: string) => state.predictionSnapshots[locationId] ?? null;
@@ -144,31 +129,6 @@ export const useLocationsStore = defineStore('locations', {
       }
 
       return formatLastSyncLabel(state.liveDataStatus, state.liveDataSyncedAt);
-    },
-    searchCoverageMessage(state): string {
-      const hasQuery = state.searchText.trim().length >= 2;
-
-      if (!hasQuery) {
-        return '';
-      }
-
-      if (state.searchCoverageStatus === 'loading') {
-        return 'Loading more Melbourne places from the official landmarks dataset...';
-      }
-
-      if (state.searchCoverageStatus === 'error') {
-        return 'Broader Melbourne place search is unavailable right now.';
-      }
-
-      if (!this.filteredLocations.length && this.expandedSearchResults.length) {
-        return 'No featured map locations match this query. Showing broader official place matches below.';
-      }
-
-      if (!this.filteredLocations.length && !this.expandedSearchResults.length) {
-        return 'No matching featured map locations or official Melbourne places found.';
-      }
-
-      return '';
     },
   },
   actions: {
@@ -260,17 +220,6 @@ export const useLocationsStore = defineStore('locations', {
     },
     async hydrateLiveSnapshots() {
       await this.refreshLiveData();
-    },
-    async hydrateSearchCoverage() {
-      try {
-        const places = await fetchSearchCoveragePlaces();
-
-        this.searchCoveragePlaces = places;
-        this.searchCoverageStatus = places.length ? 'fresh' : 'empty';
-      } catch (error) {
-        console.error('Search coverage refresh failed.', error);
-        this.searchCoverageStatus = 'error';
-      }
     },
     async hydratePrediction(locationId: string, force = false) {
       if (this.predictionRefreshing[locationId]) {

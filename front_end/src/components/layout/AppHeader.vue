@@ -27,7 +27,7 @@
         </RouterLink>
       </nav>
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
         <nav
           aria-label="Primary mobile"
           class="flex items-center gap-4 md:hidden"
@@ -44,6 +44,21 @@
             {{ item.label }}
           </RouterLink>
         </nav>
+
+        <!-- Quick View link -->
+        <RouterLink
+          to="/quick-view"
+          class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-[7px] text-[14px] font-semibold leading-none tracking-[-0.01em] transition"
+          :class="isActive('/quick-view')
+            ? 'border-sense-teal/30 bg-sense-teal/8 text-sense-teal dark:border-sense-mint/30 dark:bg-sense-mint/10 dark:text-sense-mint'
+            : 'border-sense-teal/18 bg-white/55 text-sense-teal/80 hover:border-sense-teal/30 hover:bg-sense-teal/6 hover:text-sense-teal dark:border-white/12 dark:bg-white/[0.04] dark:text-sense-mint/75 dark:hover:border-sense-mint/28 dark:hover:text-sense-mint'"
+        >
+          <svg viewBox="0 0 16 16" fill="none" class="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+            <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5" />
+            <path d="M10 10 13.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          Quick View
+        </RouterLink>
 
         <ThemeToggle />
       </div>

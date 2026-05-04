@@ -1,31 +1,56 @@
 <template>
   <section class="space-y-3.5">
-    <div>
-      <p class="text-[18px] font-semibold text-sense-ink dark:text-white">
-        Sensory Profile
-      </p>
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-baseline gap-2.5">
+        <p class="text-[20px] font-semibold tracking-tight text-sense-ink dark:text-white">
+          Sensory Profile
+        </p>
+        <span v-if="lastUpdatedLabel" class="text-[12px] text-sense-ink/45 dark:text-slate-400">
+          {{ lastUpdatedLabel }}
+        </span>
+      </div>
+      <RouterLink
+        to="/about"
+        class="inline-flex items-center gap-1 text-[13px] font-medium text-sense-teal/78 transition hover:text-sense-teal dark:text-sense-mint/82 dark:hover:text-sense-mint"
+      >
+        <span>Learn more</span>
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          class="h-3.5 w-3.5"
+          aria-hidden="true"
+        >
+          <path
+            d="M6 3.5 10.5 8 6 12.5"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </RouterLink>
     </div>
 
     <div class="grid gap-3 md:grid-cols-2">
       <article
         v-for="item in cards"
         :key="item.label"
-        class="detail-surface detail-profile-item rounded-[12px] border border-sense-teal/10 bg-white px-4 py-4 shadow-[0_12px_24px_-20px_rgba(16,74,85,0.35)] dark:border-white/8 dark:bg-[#16252f]/92"
+        class="detail-surface detail-profile-item rounded-[12px] border border-sense-teal/10 bg-white px-4 py-4 shadow-[0_12px_24px_-20px_rgba(16,74,85,0.35)] dark:border-white/8 dark:bg-[#16252f]/90"
       >
         <div class="flex items-start gap-3">
-          <div class="detail-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sense-mint/34 text-[11px] font-bold uppercase text-sense-teal dark:bg-white/10 dark:text-sense-mint">
+          <div class="detail-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sense-mint/34 text-[13px] font-bold uppercase text-sense-teal dark:bg-white/10 dark:text-sense-mint">
             <component :is="item.icon" class="h-4 w-4" />
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <p class="detail-card-title text-[16px] font-semibold leading-tight text-sense-ink dark:text-white">
+              <p class="detail-card-title text-[16px] md:text-[17px] font-semibold leading-tight text-sense-ink dark:text-white">
                 {{ item.label }}
               </p>
-              <span class="detail-badge rounded-md bg-emerald-100 px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100">
+              <span class="detail-badge rounded-md bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100">
                 {{ item.value }}
               </span>
             </div>
-            <p class="detail-copy mt-1.5 text-[13px] leading-5 text-sense-ink/62 dark:text-slate-100">
+            <p class="detail-copy mt-1.5 text-[14px] md:text-[15px] leading-relaxed text-sense-ink/70 dark:text-slate-100">
               {{ item.detail }}
             </p>
           </div>
@@ -37,6 +62,7 @@
 
 <script setup lang="ts">
 import { computed, FunctionalComponent, h } from 'vue';
+import { RouterLink } from 'vue-router';
 
 import type { SensoryProfile } from '@/types/domain';
 
@@ -116,28 +142,36 @@ function unpredictabilityLabel(value: SensoryProfile['crowdPredictability']): st
   return value === 'stable' ? 'Low' : value === 'variable' ? 'Moderate' : 'High';
 }
 
+const lastUpdatedLabel = computed(() => {
+  const raw = props.profile.lastReviewedAt;
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (isNaN(date.getTime())) return null;
+  return `Updated ${date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+});
+
 const cards = computed(() => [
   {
     icon: SoundIcon,
     label: 'Noise',
-    value: noiseLabel(props.profile.noiseLevel),
-    detail: props.profile.noiseLevel === 'low'
+    value: props.profile.noiseDb != null ? `${props.profile.noiseDb} dB` : noiseLabel(props.profile.noiseLevel),
+    detail: props.profile.noiseDescription ?? (props.profile.noiseLevel === 'low'
       ? 'Generally quieter and easier to regulate.'
       : props.profile.noiseLevel === 'moderate'
         ? 'Some background sound is likely through the visit.'
-        : 'Sound levels can rise quickly in active periods.',
+        : 'Sound levels can rise quickly in active periods.'),
   },
   {
     icon: SunIcon,
     label: 'Lighting',
-    value: lightingLabel(props.profile.lightingType),
-    detail: props.profile.lightingType === 'natural'
+    value: props.profile.lightingLevel ?? lightingLabel(props.profile.lightingType),
+    detail: props.profile.lightingDescription ?? (props.profile.lightingType === 'natural'
       ? 'Mostly natural light with fewer harsh changes.'
       : props.profile.lightingType === 'controlled-indoor'
         ? 'Indoor lighting is relatively steady and predictable.'
         : props.profile.lightingType === 'mixed'
           ? 'Lighting conditions shift between spaces.'
-          : 'Bright artificial lighting may feel intense.',
+          : 'Bright artificial lighting may feel intense.'),
   },
   {
     icon: UnpredictabilityIcon,

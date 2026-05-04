@@ -1,5 +1,5 @@
 <template>
-  <section class="figma-panel-soft relative min-h-[440px] overflow-hidden p-3 md:min-h-[560px] md:p-4">
+  <section class="figma-panel-soft relative min-h-[440px] p-3 md:min-h-[560px] md:p-4">
     <div class="amity-leaflet-shell">
       <div
         ref="mapElement"
@@ -8,11 +8,15 @@
       ></div>
     </div>
 
-    <LocationSummaryPopup
-      :location="selectedLocation"
-      @close="closeLocationSummary"
-      @view-profile="viewSelectedLocationDetail"
-    />
+    <!-- Teleport to body: escapes Leaflet container width/overflow constraints
+         so position:fixed works against the viewport on all screen sizes -->
+    <Teleport to="body">
+      <LocationSummaryPopup
+        :location="selectedLocation"
+        @close="closeLocationSummary"
+        @view-profile="viewSelectedLocationDetail"
+      />
+    </Teleport>
 
     <div class="pointer-events-none absolute inset-x-3 bottom-3 z-[450] flex justify-end md:inset-x-4 md:bottom-4">
       <div class="pointer-events-auto">
@@ -35,6 +39,7 @@ import {
   type DivIcon,
   type FeatureGroup,
   type Map as LeafletMap,
+  type TileLayer,
 } from 'leaflet';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -46,6 +51,12 @@ import type { Location } from '@/types/domain';
 const props = defineProps<{
   locations: Location[];
   allLocations?: Location[];
+  externalSelectedId?: string | null;
+}>();
+
+const emit = defineEmits<{
+  'clear-external': [];
+  'location-clicked': [id: string | null];
 }>();
 
 const router = useRouter();
@@ -55,9 +66,21 @@ const selectedLocationId = ref<string | null>(null);
 let leafletMap: LeafletMap | null = null;
 let markerLayer: FeatureGroup | null = null;
 let cbdBounds: LatLngBounds | null = null;
+let baseLayer: TileLayer | null = null;
+let themeObserver: MutationObserver | null = null;
 
 const defaultCenter: [number, number] = [-37.8136, 144.9631];
 const fixedPadding: [number, number] = [34, 34];
+const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiY2xhdzAwNDMiLCJhIjoiY205MHdpZmtnMDJvOTJrcGpoeDlnN25rOCJ9.3YhROdAlsVmdU0tBDWmlGw';
+const MAPBOX_ATTRIBUTION =
+  '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> ' +
+  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>';
+const MAPBOX_TILE_OPTIONS = {
+  attribution: MAPBOX_ATTRIBUTION,
+  maxZoom: 18,
+  tileSize: 512,
+  zoomOffset: -1,
+};
 
 const selectedLocation = computed(() => {
   if (!selectedLocationId.value) {
@@ -66,6 +89,28 @@ const selectedLocation = computed(() => {
 
   return props.locations.find((location) => location.locationId === selectedLocationId.value) ?? null;
 });
+
+function currentMapTheme(): 'light' | 'dark' {
+  if (typeof document === 'undefined') {
+    return 'light';
+  }
+
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+function buildMapboxTileUrl(theme: 'light' | 'dark'): string {
+  const styleId = theme === 'dark' ? 'navigation-night-v1' : 'navigation-day-v1';
+  return `https://api.mapbox.com/styles/v1/mapbox/${styleId}/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_ACCESS_TOKEN}`;
+}
+
+function syncBaseLayer() {
+  if (!leafletMap) {
+    return;
+  }
+
+  baseLayer?.remove?.();
+  baseLayer = tileLayer(buildMapboxTileUrl(currentMapTheme()), MAPBOX_TILE_OPTIONS).addTo(leafletMap);
+}
 
 function markerTone(score: Location['sensoryScore']): string {
   if (score <= 2) {
@@ -79,13 +124,13 @@ function markerTone(score: Location['sensoryScore']): string {
   return 'amity-map-marker--busy';
 }
 
-function buildMarkerIcon(location: Location): DivIcon {
+function buildMarkerIcon(location: Location, isSelected = false): DivIcon {
   return divIcon({
     className: 'amity-map-marker-wrapper',
     iconSize: [34, 34],
     iconAnchor: [17, 17],
     html: `
-      <span class="amity-map-marker ${markerTone(location.sensoryScore)}">
+      <span class="amity-map-marker ${markerTone(location.sensoryScore)} ${isSelected ? 'amity-map-marker--selected' : ''}">
         <span class="amity-map-marker__glow"></span>
         <span class="amity-map-marker__label">${location.sensoryScore}</span>
       </span>
@@ -143,6 +188,18 @@ function applyFixedBounds() {
   }
 }
 
+function focusLocationOnMap(location: Location) {
+  if (!leafletMap) {
+    return;
+  }
+
+  const nextZoom = Math.max(leafletMap.getZoom(), 15);
+  leafletMap.flyTo([location.coordinates.lat, location.coordinates.lon], nextZoom, {
+    animate: true,
+    duration: 0.45,
+  });
+}
+
 function renderMarkers() {
   if (!leafletMap || !markerLayer) {
     return;
@@ -154,7 +211,7 @@ function renderMarkers() {
 
   for (const location of renderableLocations) {
     const locationMarker = marker([location.coordinates.lat, location.coordinates.lon], {
-      icon: buildMarkerIcon(location),
+      icon: buildMarkerIcon(location, location.locationId === selectedLocationId.value),
       keyboard: true,
       riseOnHover: true,
       title: `${location.name}, sensory score ${location.sensoryScore}`,
@@ -162,6 +219,7 @@ function renderMarkers() {
 
     locationMarker.on('click', () => {
       selectedLocationId.value = location.locationId;
+      emit('location-clicked', location.locationId);
     });
 
     markerLayer.addLayer(locationMarker);
@@ -170,6 +228,7 @@ function renderMarkers() {
 
 function closeLocationSummary() {
   selectedLocationId.value = null;
+  emit('location-clicked', null);
 }
 
 function viewSelectedLocationDetail() {
@@ -197,10 +256,7 @@ onMounted(() => {
   control.zoom({ position: 'topright' }).addTo(leafletMap);
   control.attribution({ position: 'bottomleft', prefix: false }).addTo(leafletMap);
 
-  tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 17,
-    attribution: '&copy; OpenStreetMap contributors',
-  }).addTo(leafletMap);
+  syncBaseLayer();
 
   markerLayer = featureGroup().addTo(leafletMap);
   updateCbdBounds();
@@ -211,7 +267,39 @@ onMounted(() => {
     leafletMap?.invalidateSize();
     applyFixedBounds();
   }, 0);
+
+  if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
+    themeObserver = new MutationObserver(() => {
+      syncBaseLayer();
+    });
+
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
 });
+
+watch(
+  () => props.externalSelectedId,
+  (id) => {
+    if (id) {
+      selectedLocationId.value = id;
+      emit('clear-external');
+    }
+  },
+);
+
+watch(
+  selectedLocation,
+  (location) => {
+    renderMarkers();
+
+    if (location) {
+      focusLocationOnMap(location);
+    }
+  },
+);
 
 watch(
   () => props.locations,
@@ -247,6 +335,9 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  themeObserver?.disconnect();
+  themeObserver = null;
+  baseLayer = null;
   leafletMap?.remove();
   leafletMap = null;
   markerLayer = null;

@@ -1,19 +1,19 @@
 <template>
   <section class="space-y-3.5">
-    <p class="text-[18px] font-semibold text-sense-ink dark:text-white">
+    <p class="text-[20px] font-semibold tracking-tight text-sense-ink dark:text-white">
       Good to Know
     </p>
 
-    <div class="detail-surface detail-guide overflow-hidden rounded-[12px] border border-sense-teal/10 bg-white shadow-[0_12px_24px_-20px_rgba(16,74,85,0.35)] dark:border-white/8 dark:bg-[#16252f]/92">
+    <div class="detail-surface detail-guide overflow-hidden rounded-[12px] border border-sense-teal/10 bg-white shadow-[0_12px_24px_-20px_rgba(16,74,85,0.35)] dark:border-white/8 dark:bg-[#16252f]/90">
       <article
         v-for="item in items"
         :key="item.kind"
         class="detail-guide-row flex items-center gap-3 border-b border-sense-teal/8 px-4 py-4 last:border-b-0 dark:border-white/8"
       >
-        <div class="detail-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sense-mint/30 text-[10px] font-bold uppercase text-sense-teal dark:bg-white/10 dark:text-sense-mint">
+        <div class="detail-chip flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sense-mint/30 text-[11px] font-bold uppercase text-sense-teal dark:bg-white/10 dark:text-sense-mint">
           <component :is="iconFor(item.kind)" class="h-4 w-4" />
         </div>
-        <p class="detail-copy text-[14px] leading-6 text-sense-ink/76 dark:text-slate-100">
+        <p class="detail-copy text-[15px] leading-6 text-sense-ink/80 dark:text-slate-100">
           {{ item.value }}
         </p>
       </article>
