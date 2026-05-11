@@ -1,9 +1,10 @@
-package com.fomopotato.amityspace.service;
+package com.fomopotato.amityspace.service.location;
 
 import com.fomopotato.amityspace.dto.LocationSummaryDTO;
 import com.fomopotato.amityspace.dto.PreferenceRequestDTO;
 import com.fomopotato.amityspace.entity.LocationEntity;
 import com.fomopotato.amityspace.entity.SensoryProfileEntity;
+
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

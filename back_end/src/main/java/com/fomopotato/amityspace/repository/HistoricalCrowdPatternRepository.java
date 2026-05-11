@@ -10,4 +10,6 @@ import java.util.List;
 public interface HistoricalCrowdPatternRepository extends JpaRepository<HistoricalCrowdPatternEntity, Long> {
 
     List<HistoricalCrowdPatternEntity> findByLocationId(Long locationId);
+
+    List<HistoricalCrowdPatternEntity> findByLocationIdAndHour(Long locationId, Integer hour);
 }

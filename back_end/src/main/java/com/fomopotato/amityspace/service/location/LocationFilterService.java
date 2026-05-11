@@ -1,4 +1,4 @@
-package com.fomopotato.amityspace.service;
+package com.fomopotato.amityspace.service.location;
 
 import com.fomopotato.amityspace.dto.PreferenceRequestDTO;
 import com.fomopotato.amityspace.entity.LocationEntity;
