@@ -2,7 +2,8 @@ package com.fomopotato.amityspace.controller;
 
 import com.fomopotato.amityspace.dto.LocationDetailDTO;
 import com.fomopotato.amityspace.dto.LocationSummaryDTO;
-import com.fomopotato.amityspace.service.LocationQueryService;
+import com.fomopotato.amityspace.service.location.LocationQueryService;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
