@@ -2,14 +2,14 @@ package com.fomopotato.amityspace.service.routing;
 
 import com.fomopotato.amityspace.dto.NearbyQuietPlaceDTO;
 import com.fomopotato.amityspace.entity.LocationEntity;
+import com.fomopotato.amityspace.entity.LocationNearbyPointEntity;
 import com.fomopotato.amityspace.entity.SensoryProfileEntity;
 import com.fomopotato.amityspace.exception.LocationNotFoundException;
+import com.fomopotato.amityspace.repository.LocationNearbyPointRepository;
 import com.fomopotato.amityspace.repository.LocationRepository;
-import com.fomopotato.amityspace.service.spatial.DistanceCalculationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,12 +19,12 @@ public class NearbyQuietPlaceService {
     private static final double MAX_RADIUS_METERS = 1000.0;
 
     private final LocationRepository locationRepository;
-    private final DistanceCalculationService distanceCalculationService;
+    private final LocationNearbyPointRepository locationNearbyPointRepository;
 
     public NearbyQuietPlaceService(LocationRepository locationRepository,
-                                   DistanceCalculationService distanceCalculationService) {
+                                   LocationNearbyPointRepository locationNearbyPointRepository) {
         this.locationRepository = locationRepository;
-        this.distanceCalculationService = distanceCalculationService;
+        this.locationNearbyPointRepository = locationNearbyPointRepository;
     }
 
     @Transactional(readOnly = true)
@@ -34,12 +34,13 @@ public class NearbyQuietPlaceService {
 
         double searchRadius = resolveRadiusMeters(radiusMeters);
 
-        return locationRepository.findAll().stream()
-                .filter(location -> !location.getId().equals(destination.getId()))
-                .map(location -> buildNearbyQuietPlaceDTO(destination, location))
-                .filter(dto -> dto.getDistanceMeters() <= searchRadius)
+        return locationNearbyPointRepository
+                .findBySourceLocationIdOrderByDistanceMetersAsc(destination.getId())
+                .stream()
+                .filter(nearbyPoint -> nearbyPoint.getDistanceMeters() != null)
+                .filter(nearbyPoint -> nearbyPoint.getDistanceMeters() <= searchRadius)
+                .map(this::buildNearbyQuietPlaceDTO)
                 .filter(dto -> isCalmerSensoryScore(dto.getSensoryScore()))
-                .sorted(Comparator.comparing(NearbyQuietPlaceDTO::getDistanceMeters))
                 .toList();
     }
 
@@ -55,27 +56,23 @@ public class NearbyQuietPlaceService {
         return radiusMeters;
     }
 
-    private NearbyQuietPlaceDTO buildNearbyQuietPlaceDTO(LocationEntity destination, LocationEntity candidate) {
-        double distanceMeters = distanceCalculationService.calculateDistanceMeters(
-                destination.getLatitude(),
-                destination.getLongitude(),
-                candidate.getLatitude(),
-                candidate.getLongitude()
-        );
+    private NearbyQuietPlaceDTO buildNearbyQuietPlaceDTO(LocationNearbyPointEntity nearbyPoint) {
+        LocationEntity nearbyLocation = locationRepository.findById(nearbyPoint.getNearbyLocationId())
+                .orElseThrow(() -> new LocationNotFoundException(nearbyPoint.getNearbyLocationId()));
 
-        SensoryProfileEntity sensoryProfile = candidate.getSensoryProfile();
+        SensoryProfileEntity sensoryProfile = nearbyLocation.getSensoryProfile();
 
         String sensoryScore = sensoryProfile == null ? null : sensoryProfile.getOverallSensoryScore();
         String sensoryLabel = buildSensoryLabel(sensoryScore);
 
         return new NearbyQuietPlaceDTO(
-                candidate.getId(),
-                candidate.getName(),
-                candidate.getLatitude(),
-                candidate.getLongitude(),
+                nearbyLocation.getId(),
+                nearbyLocation.getName(),
+                nearbyLocation.getLatitude(),
+                nearbyLocation.getLongitude(),
                 sensoryScore,
                 sensoryLabel,
-                roundDistance(distanceMeters),
+                roundDistance(nearbyPoint.getDistanceMeters()),
                 "Calmer nearby option"
         );
     }
