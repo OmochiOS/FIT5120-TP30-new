@@ -3,64 +3,70 @@
     <aside
       v-if="location"
       data-testid="summary-shell"
-      class="summary-shell pointer-events-auto fixed bottom-0 left-3 w-[calc(100vw-1.5rem)] z-[9990] md:bottom-auto md:left-4 md:right-auto md:top-4 md:w-[364px]"
+      class="summary-shell pointer-events-auto fixed bottom-0 left-3 w-[calc(100vw-1.5rem)] z-[9990] md:bottom-auto md:right-4 md:left-auto md:top-4 md:w-[364px] md:h-[580px]"
       aria-label="Selected location summary"
       :style="panelStyle"
     >
       <div
         data-testid="summary-panel"
-        class="map-summary-panel figma-panel-soft overflow-hidden border border-white/55 bg-white/96 p-[15px] backdrop-blur-xl dark:border-[#6f8792] dark:bg-[#0f2029] dark:shadow-[0_22px_44px_rgba(0,0,0,0.42)]"
+        class="map-summary-panel figma-panel-soft flex flex-col overflow-hidden border border-white/55 bg-white/96 backdrop-blur-xl dark:border-[#6f8792] dark:bg-[#0f2029] dark:shadow-[0_22px_44px_rgba(0,0,0,0.42)] md:h-full"
         :class="isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'"
         @mousedown="startDrag"
         @touchstart="startDrag"
       >
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0 space-y-1.5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-sense-teal/68 dark:text-slate-200">
-              Location summary
-            </p>
-            <h3 class="text-[21px] font-semibold leading-[1.15] text-sense-ink dark:text-slate-50">
-              {{ location.name }}
-            </h3>
+        <!-- ── Fixed header (drag zone + title + badges) ── -->
+        <div class="shrink-0 p-[15px] pb-0">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 space-y-1.5">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-sense-teal/68 dark:text-slate-200">
+                Location summary
+              </p>
+              <h3 class="text-[21px] font-semibold leading-[1.15] text-sense-ink dark:text-slate-50">
+                {{ location.name }}
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              data-testid="summary-close"
+              class="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-sense-teal/12 bg-white/80 text-sense-ink/60 transition hover:border-sense-teal/24 hover:text-sense-ink dark:border-[#6f8792] dark:bg-[#1b323e] dark:text-slate-50 dark:hover:border-slate-200 dark:hover:bg-[#263f4c] dark:hover:text-white"
+              aria-label="Close summary"
+              @click="$emit('close')"
+            >
+              <svg viewBox="0 0 16 16" fill="none" class="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M4 4l8 8M12 4 4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </button>
           </div>
 
-          <button
-            type="button"
-            data-testid="summary-close"
-            class="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-sense-teal/12 bg-white/80 text-sense-ink/60 transition hover:border-sense-teal/24 hover:text-sense-ink dark:border-[#6f8792] dark:bg-[#1b323e] dark:text-slate-50 dark:hover:border-slate-200 dark:hover:bg-[#263f4c] dark:hover:text-white"
-            aria-label="Close summary"
-            @click="$emit('close')"
-          >
-            <svg viewBox="0 0 16 16" fill="none" class="h-3.5 w-3.5" aria-hidden="true">
-              <path d="M4 4l8 8M12 4 4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="mt-2.5 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <span
-            data-testid="summary-display-type"
-            class="w-fit rounded-full border border-sense-teal/12 bg-white px-3 py-1 text-[10px] font-semibold text-sense-teal dark:border-[#7e98a4] dark:bg-[#203844] dark:text-slate-50"
-          >
-            {{ location.displayType }}
-          </span>
-
-          <div
-            data-testid="summary-crowd-bar"
-            class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-[13px] border px-3 py-2"
-            :class="crowdBarClass(location)"
-          >
-            <span class="text-[10px] font-semibold uppercase tracking-[0.14em]">
-              Crowd level
+          <div class="mt-2.5 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span
+              data-testid="summary-display-type"
+              class="w-fit rounded-full border border-sense-teal/12 bg-white px-3 py-1 text-[10px] font-semibold text-sense-teal dark:border-[#7e98a4] dark:bg-[#203844] dark:text-slate-50"
+            >
+              {{ location.displayType }}
             </span>
-            <span class="shrink-0 text-right text-[13px] font-semibold">
-              {{ crowdLabel(location) }}
-            </span>
+
+            <div
+              data-testid="summary-crowd-bar"
+              class="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-[13px] border px-3 py-2"
+              :class="crowdBarClass(location)"
+            >
+              <span class="text-[10px] font-semibold uppercase tracking-[0.14em]">
+                Crowd level
+              </span>
+              <span class="shrink-0 text-right text-[13px] font-semibold">
+                {{ crowdLabel(location) }}
+              </span>
+            </div>
           </div>
         </div>
+
+        <!-- ── Scrollable body ── -->
+        <div class="summary-scroll-body min-h-0 flex-1 overflow-y-auto px-[15px] pb-3.5 pt-3.5">
 
         <section
-          class="mt-3.5 rounded-[22px] border border-sense-teal/10 bg-white/78 px-[14px] py-[14px] dark:border-[#49626e] dark:bg-[#142a35]"
+          class="rounded-[22px] border border-sense-teal/10 bg-white/78 px-[14px] py-[14px] dark:border-[#49626e] dark:bg-[#142a35]"
         >
           <div class="flex items-center justify-between gap-3">
             <p class="text-[12px] font-semibold uppercase tracking-[0.14em] text-sense-ink/58 dark:text-slate-200">
@@ -140,6 +146,8 @@
           </div>
         </section>
 
+        <VisitTimeInsightCard :location="location" />
+
         <section
           data-testid="summary-description"
           class="mt-3.5 rounded-[20px] border border-sense-teal/10 bg-white/78 px-[14px] py-[14px] dark:border-[#49626e] dark:bg-[#142a35]"
@@ -151,16 +159,46 @@
             {{ location.description || 'Description coming soon. Backend detail for this location will appear here once available.' }}
           </p>
         </section>
+        </div><!-- end scrollable body -->
 
-        <button
-          type="button"
-          data-testid="summary-view-profile"
-          data-guide="view-profile"
-          class="mt-3.5 inline-flex w-full cursor-pointer items-center justify-center rounded-full bg-[#5f8b84] px-4 py-[11px] text-sm font-semibold text-white transition hover:bg-[#4f7771] dark:bg-sense-mint dark:text-sense-night dark:hover:bg-white"
-          @click="$emit('view-profile')"
-        >
-          View full profile
-        </button>
+        <!-- ── Fixed footer (action buttons) ── -->
+        <div class="shrink-0 px-[15px] pb-[15px] pt-3">
+        <div class="flex gap-3">
+          <button
+            type="button"
+            data-testid="summary-view-profile"
+            data-guide="view-profile"
+            class="inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-[#5f8b84] px-4 py-[11px] text-sm font-semibold text-white transition hover:bg-[#4f7771] dark:bg-sense-mint dark:text-sense-night dark:hover:bg-white"
+            @click="$emit('view-profile')"
+          >
+            View full profile
+          </button>
+
+          <button
+            type="button"
+            data-testid="summary-navigate"
+            class="inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#5f8b84]/30 bg-transparent px-4 py-[11px] text-sm font-semibold text-[#5f8b84] transition hover:border-[#5f8b84]/50 hover:bg-[#5f8b84]/6 dark:border-sense-mint/30 dark:text-sense-mint dark:hover:border-sense-mint/50 dark:hover:bg-sense-mint/8"
+            @click="$emit('navigate')"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              class="h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 1.5L14 8L8 14.5L2 8L8 1.5Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+              <circle cx="8" cy="8" r="2" fill="currentColor" />
+            </svg>
+            Navigation
+          </button>
+        </div>
+        </div><!-- end footer -->
+
       </div>
     </aside>
   </Transition>
@@ -171,6 +209,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import type { CrowdLevel, Location } from '@/types/domain';
 import { getCrowdLabel } from '@/utils/crowd';
+import VisitTimeInsightCard from './VisitTimeInsightCard.vue';
 
 const props = defineProps<{
   location: Location | null;
@@ -179,6 +218,7 @@ const props = defineProps<{
 defineEmits<{
   close: [];
   'view-profile': [];
+  navigate: [];
 }>();
 
 type GaugePoint = {
@@ -417,6 +457,25 @@ onBeforeUnmount(() => {
 <style scoped>
 .map-summary-panel {
   touch-action: none;
+}
+
+/* ── Scrollable body: thin, styled scrollbar ─────────── */
+.summary-scroll-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(95, 139, 132, 0.3) transparent;
+}
+.summary-scroll-body::-webkit-scrollbar {
+  width: 4px;
+}
+.summary-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.summary-scroll-body::-webkit-scrollbar-thumb {
+  background-color: rgba(95, 139, 132, 0.35);
+  border-radius: 4px;
+}
+.summary-scroll-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(95, 139, 132, 0.6);
 }
 
 .map-summary-enter-active,

@@ -92,7 +92,7 @@
   }
 
   .amity-leaflet-shell {
-    @apply h-full min-h-[410px] overflow-hidden rounded-[24px] md:min-h-[528px];
+    @apply overflow-hidden rounded-[24px];
   }
 
   .amity-leaflet-map {
@@ -208,6 +208,19 @@
 
   .amity-map-marker--selected .amity-map-marker__glow {
     opacity: 0.34;
+  }
+
+  .amity-map-marker--en-route {
+    box-shadow:
+      0 0 0 3px #4a7fa8,
+      0 0 0 6px rgba(74, 127, 168, 0.25),
+      0 10px 18px rgba(79, 90, 83, 0.14);
+    transform: scale(1.08);
+  }
+
+  .amity-map-marker--en-route .amity-map-marker__glow {
+    opacity: 0.3;
+    filter: blur(8px);
   }
 
   .dark .about-page .about-copy {

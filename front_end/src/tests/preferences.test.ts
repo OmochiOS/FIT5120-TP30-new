@@ -9,6 +9,7 @@ const defaults: UserPreference = {
   crowds: false,
   unpredictability: false,
   activity: 'any',
+  predictionTime: 'any',
   darkModeEnabled: false,
 };
 
@@ -24,6 +25,7 @@ describe('local storage preferences', () => {
       crowds: true,
       unpredictability: false,
       activity: 'outdoor',
+      predictionTime: '11am-1pm',
       darkModeEnabled: true,
     };
 

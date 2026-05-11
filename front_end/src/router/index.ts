@@ -7,7 +7,6 @@ import LocationsView from '@/views/LocationsView.vue';
 import MapView from '@/views/MapView.vue';
 import NotFoundView from '@/views/NotFoundView.vue';
 import PredictionView from '@/views/PredictionView.vue';
-import QuickView from '@/views/QuickView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -36,11 +35,6 @@ export const router = createRouter({
       path: '/about',
       name: 'about',
       component: AboutView,
-    },
-    {
-      path: '/quick-view',
-      name: 'quick-view',
-      component: QuickView,
     },
     {
       path: '/location/:locationId',

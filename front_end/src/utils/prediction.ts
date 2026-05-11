@@ -142,11 +142,48 @@ export const predictionPopularSearches = [
 ];
 
 export function getLocationPrediction(location: Location): LocationPrediction {
-  const multiplier = ESTIMATE_MULTIPLIER[location.locationId] ?? 1;
-  const rows = BASE_ROWS.map((row) => ({
-    ...row,
-    estimate: Math.max(10, Math.round(row.estimate * multiplier)),
-  }));
+  let multiplier = ESTIMATE_MULTIPLIER[location.locationId];
+  if (multiplier === undefined) {
+    const numId = parseInt(location.locationId, 10);
+    if (!isNaN(numId)) {
+      // Deterministic pseudo-random multiplier between 0.4 and 1.3
+      multiplier = 0.4 + (((numId * 137) % 100) / 100) * 0.9;
+    } else {
+      multiplier = 1;
+    }
+  }
+
+  // Time shift to make the peak hour dynamic based on category
+  let shift = 0;
+  if (location.category === 'Park') {
+    shift = -2; // Peaks earlier (11am-3pm)
+  } else if (location.category === 'Library' || location.category === 'Museum') {
+    shift = -3; // Peaks morning (9am-1pm)
+  } else {
+    // Slight random shift for others
+    const numId = parseInt(location.locationId, 10);
+    if (!isNaN(numId)) {
+      shift = (numId % 3) - 1; // -1, 0, or 1
+    }
+  }
+
+  const rawEstimates = BASE_ROWS.map((_, i) => {
+    const sourceIdx = (i - shift + 8) % 8;
+    return Math.max(10, Math.round(BASE_ROWS[sourceIdx].estimate * multiplier));
+  });
+  
+  const rows = BASE_ROWS.map((row, idx) => {
+    const estimate = rawEstimates[idx];
+    let level: CrowdLevel = 'high';
+    if (estimate <= 100) level = 'low';
+    else if (estimate <= 180) level = 'moderate';
+    
+    let recommendation = 'Peak avoid';
+    if (level === 'low') recommendation = 'Recommended';
+    if (level === 'moderate') recommendation = 'Manageable';
+
+    return { ...row, estimate, level, recommendation };
+  });
   const fallbackQuietestNote =
     QUIETEST_NOTES[location.locationId] ?? 'Quietest: weekday mornings';
   const fallbackDayPlans = Object.fromEntries(

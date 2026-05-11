@@ -495,7 +495,7 @@ const flippedCards = ref<Record<BarrierCardId, boolean>>({
 const statCards: StatCard[] = [
   {
     id: 'participation',
-    stat: '51%',
+    stat: '25%',
     copy: 'of autistic young adults are completely socially isolated.',
     imageSrc: '/sitting_icon.png',
     imageAlt: 'Person sitting alone',
@@ -505,7 +505,7 @@ const statCards: StatCard[] = [
       objectFit: 'contain',
       flexShrink: '0',
     },
-    citationButtonLabel: 'Show citation for the 51 percent statistic',
+    citationButtonLabel: 'Show citation for the 25 percent statistic',
     citations: [
       {
         label: '[1] Orsmond et al. (2013)',

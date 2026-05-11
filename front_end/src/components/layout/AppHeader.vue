@@ -45,11 +45,12 @@
           </RouterLink>
         </nav>
 
-        <!-- Quick View link -->
-        <RouterLink
-          to="/quick-view"
+        <!-- Quick View toggle -->
+        <button
+          type="button"
+          @click="handleQuickViewToggle"
           class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-[7px] text-[14px] font-semibold leading-none tracking-[-0.01em] transition"
-          :class="isActive('/quick-view')
+          :class="preferencesStore.quickViewModeActive
             ? 'border-sense-teal/30 bg-sense-teal/8 text-sense-teal dark:border-sense-mint/30 dark:bg-sense-mint/10 dark:text-sense-mint'
             : 'border-sense-teal/18 bg-white/55 text-sense-teal/80 hover:border-sense-teal/30 hover:bg-sense-teal/6 hover:text-sense-teal dark:border-white/12 dark:bg-white/[0.04] dark:text-sense-mint/75 dark:hover:border-sense-mint/28 dark:hover:text-sense-mint'"
         >
@@ -57,8 +58,8 @@
             <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5" />
             <path d="M10 10 13.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
           </svg>
-          Quick View
-        </RouterLink>
+          Quick View Mode
+        </button>
 
         <ThemeToggle />
       </div>
@@ -67,11 +68,21 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 import ThemeToggle from '@/components/layout/ThemeToggle.vue';
+import { usePreferencesStore } from '@/stores/preferences';
 
 const route = useRoute();
+const router = useRouter();
+const preferencesStore = usePreferencesStore();
+
+function handleQuickViewToggle() {
+  preferencesStore.toggleQuickViewMode();
+  if (preferencesStore.quickViewModeActive && route.path !== '/map') {
+    router.push('/map');
+  }
+}
 
 const navigationItems = [
   { label: 'Home', to: '/' },

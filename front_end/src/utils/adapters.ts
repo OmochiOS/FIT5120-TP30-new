@@ -150,6 +150,7 @@ export const defaultPreferences: UserPreference = {
   crowds: false,
   unpredictability: false,
   activity: 'any',
+  predictionTime: 'any',
   darkModeEnabled: false,
 };
 

@@ -2,6 +2,18 @@ import type { FilterState, LightingType, Location } from '@/types/domain';
 
 const calmLighting: LightingType[] = ['natural', 'controlled-indoor'];
 
+function fuzzyMatchWord(target: string, word: string): boolean {
+  let tIdx = 0;
+  let wIdx = 0;
+  while (tIdx < target.length && wIdx < word.length) {
+    if (target[tIdx] === word[wIdx]) {
+      wIdx++;
+    }
+    tIdx++;
+  }
+  return wIdx === word.length;
+}
+
 function matchesSearch(location: Location, searchText: string): boolean {
   const query = searchText.trim().toLowerCase();
 
@@ -9,10 +21,12 @@ function matchesSearch(location: Location, searchText: string): boolean {
     return true;
   }
 
-  return [location.name, location.category, location.addressOrArea, location.displayType]
+  const target = [location.name, location.category, location.addressOrArea, location.displayType]
     .join(' ')
-    .toLowerCase()
-    .includes(query);
+    .toLowerCase();
+
+  const words = query.split(/\s+/);
+  return words.every((word) => fuzzyMatchWord(target, word));
 }
 
 function matchesCategory(location: Location, category: FilterState['category']): boolean {

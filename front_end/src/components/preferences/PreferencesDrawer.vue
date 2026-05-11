@@ -14,7 +14,7 @@
         />
 
         <!-- Panel: right-side on desktop, bottom-sheet on mobile -->
-        <aside class="pref-drawer-panel absolute inset-y-0 right-0 flex w-full max-w-[340px] flex-col border-l border-sense-teal/10 bg-[#f8f6f3] px-5 py-5 shadow-2xl dark:border-[#38515d] dark:bg-[#0b1720]">
+        <aside class="pref-drawer-panel absolute inset-y-0 right-0 flex w-full max-w-[360px] flex-col border-l border-sense-teal/10 bg-[#f8f6f3] px-5 py-5 shadow-2xl dark:border-[#38515d] dark:bg-[#0b1720]">
           <div class="flex items-start justify-between gap-4">
             <div>
               <p class="text-sm font-semibold uppercase tracking-[0.16em] text-sense-teal/70 dark:text-sense-mint">
@@ -22,9 +22,6 @@
               </p>
               <p class="mt-2 text-sm leading-6 text-sense-ink/62 dark:text-slate-50">
                 Apply quick filters to narrow the map to calmer, easier-to-read places.
-              </p>
-              <p class="mt-2 text-[11px] leading-5 text-sense-ink/50 dark:text-slate-200">
-                Preferences stay on this device. Clearing browser cache resets them.
               </p>
             </div>
 
@@ -42,15 +39,17 @@
               v-for="option in filterOptions"
               :key="option.key"
               type="button"
+              :data-testid="`preference-filter-${option.key}`"
+              :aria-pressed="preferencesStore.currentFilters[option.key]"
               class="flex items-center justify-between rounded-full border px-4 py-3 text-left text-sm font-semibold transition"
-              :class="draft[option.key]
+              :class="preferencesStore.currentFilters[option.key]
                 ? 'border-sense-teal bg-sense-teal text-white dark:border-sense-mint dark:bg-sense-mint dark:text-sense-night'
                 : 'border-sense-teal/15 bg-white text-sense-ink/80 hover:border-sense-teal/35 dark:border-[#425a66] dark:bg-[#142631] dark:text-slate-50 dark:hover:border-slate-200'"
               @click="toggleFilter(option.key)"
             >
               <span>{{ option.label }}</span>
-              <!-- Icon: ON = semantic active icon, OFF = muted/disabled variant -->
-              <span class="flex h-5 w-5 shrink-0 items-center justify-center opacity-90" aria-hidden="true" v-html="draft[option.key] ? filterIcons[option.key].on : filterIcons[option.key].off" />
+              <!-- Icon: ON = calmer/filtered state, OFF = unfiltered state -->
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center opacity-90" aria-hidden="true" v-html="preferencesStore.currentFilters[option.key] ? filterIcons[option.key].on : filterIcons[option.key].off" />
             </button>
           </div>
 
@@ -65,33 +64,51 @@
                 :key="option.value"
                 type="button"
                 class="rounded-[16px] border px-4 py-3 text-sm font-semibold transition"
-                :class="draft.activity === option.value
+                :class="preferencesStore.currentFilters.activity === option.value
                   ? 'border-sense-teal bg-sense-teal text-white dark:border-sense-mint dark:bg-sense-mint dark:text-sense-night'
                   : 'border-sense-teal/15 bg-white text-sense-ink/78 hover:border-sense-teal/35 dark:border-[#425a66] dark:bg-[#142631] dark:text-slate-50 dark:hover:border-slate-200'"
-                @click="draft.activity = option.value"
+                @click="setActivity(option.value)"
               >
                 {{ option.label }}
               </button>
             </div>
           </div>
 
-          <div class="mt-auto flex items-center justify-between gap-3 pt-8">
-            <button
-              type="button"
-              class="text-sm font-semibold text-sense-ink/62 underline decoration-sense-teal/25 underline-offset-4 transition hover:text-sense-ink dark:text-slate-100 dark:hover:text-white"
-              @click="clearFilters"
-            >
-              Clear
-            </button>
+          <div class="mt-6 mb-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-sense-teal/65 dark:text-sense-mint">
+              Predicted Time
+            </p>
+            <p class="mt-1 mb-3 text-[12px] text-sense-ink/60 dark:text-slate-300">
+              Only show places predicted to be calm during:
+            </p>
 
-            <button
-              type="button"
-              class="rounded-full bg-sense-teal px-5 py-3 text-sm font-semibold text-white transition hover:bg-sense-ink dark:bg-sense-mint dark:text-sense-night dark:hover:bg-white"
-              @click="applyFilters"
-            >
-              Apply
-            </button>
+            <!-- Time block bar -->
+            <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  class="rounded-[16px] border px-4 py-2 text-[13px] font-semibold transition"
+                  :class="preferencesStore.currentFilters.predictionTime === 'any'
+                    ? 'border-sense-teal bg-sense-teal text-white dark:border-sense-mint dark:bg-sense-mint dark:text-sense-night'
+                    : 'border-sense-teal/15 bg-white text-sense-ink/78 hover:border-sense-teal/35 dark:border-[#425a66] dark:bg-[#142631] dark:text-slate-50 dark:hover:border-slate-200'"
+                  @click="setPredictionTime('any')"
+                >
+                  Any time
+                </button>
+                <button
+                  v-for="time in timeBlocks"
+                  :key="time"
+                  type="button"
+                  class="rounded-[16px] border px-4 py-2 text-[13px] font-semibold transition"
+                  :class="preferencesStore.currentFilters.predictionTime === time
+                    ? 'border-sense-teal bg-sense-teal text-white dark:border-sense-mint dark:bg-sense-mint dark:text-sense-night'
+                    : 'border-sense-teal/15 bg-white text-sense-ink/78 hover:border-sense-teal/35 dark:border-[#425a66] dark:bg-[#142631] dark:text-slate-50 dark:hover:border-slate-200'"
+                  @click="setPredictionTime(time)"
+                >
+                  {{ time }}
+                </button>
+            </div>
           </div>
+
         </aside>
       </div>
     </Transition>
@@ -99,6 +116,14 @@
 </template>
 
 <style scoped>
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ── Desktop: right-side drawer ───────────────────────── */
 .pref-drawer-enter-active,
 .pref-drawer-leave-active {
@@ -144,32 +169,32 @@
 }
 </style>
 
-
 <script setup lang="ts">
-import { reactive, watch } from 'vue';
-
-import type { MapQuickFilters } from '@/types/domain';
+import type { ActivityFilter, MapQuickFilters } from '@/types/domain';
 import { useLocationsStore } from '@/stores/locations';
 import { usePreferencesStore } from '@/stores/preferences';
 
-const props = defineProps<{
+defineProps<{
   modelValue: boolean;
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
   'update:modelValue': [value: boolean];
 }>();
 
 const preferencesStore = usePreferencesStore();
 const locationsStore = useLocationsStore();
 
-const draft = reactive<MapQuickFilters>({
-  noise: false,
-  lighting: false,
-  crowds: false,
-  unpredictability: false,
-  activity: 'any',
-});
+const timeBlocks = [
+  '7-9am',
+  '9-11am',
+  '11am-1pm',
+  '1-3pm',
+  '3-5pm',
+  '5-7pm',
+  '7-9pm',
+  '9-11pm',
+] as const;
 
 const filterOptions = [
   { key: 'noise', label: 'Noise' },
@@ -180,33 +205,20 @@ const filterOptions = [
 
 /** SVG icon pairs for each filter – ON = active, OFF = muted/disabled */
 const filterIcons: Record<string, { on: string; off: string }> = {
-  // Noise: speaker with waves (on) / speaker muted with X (off)
   noise: {
     on: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-      <path d="M4 7.5H2a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h2l4.5 3.5V4L4 7.5z"/>
-      <path d="M14 7a3 3 0 0 1 0 6"/>
-      <path d="M16.5 4.5a7 7 0 0 1 0 11"/>
-    </svg>`,
-    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
       <path d="M4 7.5H2a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h2l4.5 3.5V4L4 7.5z"/>
       <line x1="13" y1="7" x2="19" y2="13"/>
       <line x1="19" y1="7" x2="13" y2="13"/>
     </svg>`,
+    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+      <path d="M4 7.5H2a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h2l4.5 3.5V4L4 7.5z"/>
+      <path d="M14 7a3 3 0 0 1 0 6"/>
+      <path d="M16.5 4.5a7 7 0 0 1 0 11"/>
+    </svg>`,
   },
-  // Lighting: sun (on) / sun with line through (off)
   lighting: {
     on: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-      <circle cx="10" cy="10" r="3.5"/>
-      <line x1="10" y1="1" x2="10" y2="3"/>
-      <line x1="10" y1="17" x2="10" y2="19"/>
-      <line x1="1" y1="10" x2="3" y2="10"/>
-      <line x1="17" y1="10" x2="19" y2="10"/>
-      <line x1="3.5" y1="3.5" x2="5" y2="5"/>
-      <line x1="15" y1="15" x2="16.5" y2="16.5"/>
-      <line x1="16.5" y1="3.5" x2="15" y2="5"/>
-      <line x1="5" y1="15" x2="3.5" y2="16.5"/>
-    </svg>`,
-    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
       <circle cx="10" cy="10" r="3.5" stroke-opacity="0.45"/>
       <line x1="10" y1="1" x2="10" y2="3" stroke-opacity="0.45"/>
       <line x1="10" y1="17" x2="10" y2="19" stroke-opacity="0.45"/>
@@ -218,34 +230,43 @@ const filterIcons: Record<string, { on: string; off: string }> = {
       <line x1="5" y1="15" x2="3.5" y2="16.5" stroke-opacity="0.45"/>
       <line x1="3" y1="17" x2="17" y2="3" stroke-width="1.8"/>
     </svg>`,
+    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+      <circle cx="10" cy="10" r="3.5"/>
+      <line x1="10" y1="1" x2="10" y2="3"/>
+      <line x1="10" y1="17" x2="10" y2="19"/>
+      <line x1="1" y1="10" x2="3" y2="10"/>
+      <line x1="17" y1="10" x2="19" y2="10"/>
+      <line x1="3.5" y1="3.5" x2="5" y2="5"/>
+      <line x1="15" y1="15" x2="16.5" y2="16.5"/>
+      <line x1="16.5" y1="3.5" x2="15" y2="5"/>
+      <line x1="5" y1="15" x2="3.5" y2="16.5"/>
+    </svg>`,
   },
-  // Crowds: two people silhouette (on) / people with X (off)
   crowds: {
     on: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-      <circle cx="7" cy="6" r="2.5"/>
-      <path d="M1 17c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
-      <circle cx="14.5" cy="6" r="2"/>
-      <path d="M13 12.2c.48-.13.98-.2 1.5-.2 2.76 0 4.5 1.343 4.5 4"/>
-    </svg>`,
-    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
       <circle cx="7" cy="6" r="2.5" stroke-opacity="0.45"/>
       <path d="M1 17c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke-opacity="0.45"/>
       <circle cx="14.5" cy="6" r="2" stroke-opacity="0.45"/>
       <path d="M13 12.2c.48-.13.98-.2 1.5-.2 2.76 0 4.5 1.343 4.5 4" stroke-opacity="0.45"/>
       <line x1="3" y1="17" x2="17" y2="3" stroke-width="1.8"/>
     </svg>`,
+    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+      <circle cx="7" cy="6" r="2.5"/>
+      <path d="M1 17c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
+      <circle cx="14.5" cy="6" r="2"/>
+      <path d="M13 12.2c.48-.13.98-.2 1.5-.2 2.76 0 4.5 1.343 4.5 4"/>
+    </svg>`,
   },
-  // Unpredictability: shuffle arrows (on) / straight flat line (off)
   unpredictability: {
     on: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+      <line x1="1" y1="10" x2="19" y2="10" stroke-opacity="0.5"/>
+      <line x1="3" y1="17" x2="17" y2="3" stroke-width="1.8"/>
+    </svg>`,
+    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
       <polyline points="16,3 19,3 19,6"/>
       <path d="M1 17c2-4 4-6 8-6s6-4 10-8"/>
       <polyline points="16,17 19,17 19,14"/>
       <path d="M1 3c2 4 4 6 8 6"/>
-    </svg>`,
-    off: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-      <line x1="1" y1="10" x2="19" y2="10" stroke-opacity="0.5"/>
-      <line x1="3" y1="17" x2="17" y2="3" stroke-width="1.8"/>
     </svg>`,
   },
 };
@@ -258,35 +279,20 @@ const activityOptions = [
   { label: 'Any', value: 'any' as const },
 ];
 
-watch(
-  () => props.modelValue,
-  (isOpen) => {
-    if (!isOpen) {
-      return;
-    }
-
-    Object.assign(draft, preferencesStore.currentFilters);
-  },
-  { immediate: true },
-);
-
-function toggleFilter(key: keyof Omit<MapQuickFilters, 'activity'>) {
-  draft[key] = !draft[key];
-}
-
-function clearFilters() {
-  Object.assign(draft, {
-    noise: false,
-    lighting: false,
-    crowds: false,
-    unpredictability: false,
-    activity: 'any',
-  } satisfies MapQuickFilters);
-}
-
-function applyFilters() {
-  preferencesStore.replaceFilters({ ...draft });
+function toggleFilter(key: keyof Omit<MapQuickFilters, 'activity' | 'predictionTime'>) {
+  const next = { ...preferencesStore.currentFilters, [key]: !preferencesStore.currentFilters[key] };
+  preferencesStore.replaceFilters(next);
   void locationsStore.applyBackendFilter();
-  emit('update:modelValue', false);
+}
+
+function setActivity(value: ActivityFilter) {
+  preferencesStore.replaceFilters({ ...preferencesStore.currentFilters, activity: value });
+  void locationsStore.applyBackendFilter();
+}
+
+function setPredictionTime(value: string) {
+  preferencesStore.replaceFilters({ ...preferencesStore.currentFilters, predictionTime: value });
+  // We trigger backend filter so the getter re-computes, even though time is filtered on frontend
+  void locationsStore.applyBackendFilter();
 }
 </script>
