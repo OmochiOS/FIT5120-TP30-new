@@ -1,6 +1,6 @@
 <template>
   <section class="figma-panel-soft relative min-h-[440px] p-3 md:min-h-[560px] md:p-4">
-    <div class="amity-leaflet-shell">
+    <div class="amity-leaflet-shell h-[416px] md:h-[528px]">
       <div
         ref="mapElement"
         class="amity-leaflet-map"
@@ -15,6 +15,19 @@
         :location="selectedLocation"
         @close="closeLocationSummary"
         @view-profile="viewSelectedLocationDetail"
+        @navigate="openNavPanel"
+      />
+    </Teleport>
+
+    <!-- Navigation Panel (also teleported to body so it sits above everything) -->
+    <Teleport to="body">
+      <NavigationPanel
+        ref="navPanelRef"
+        :visible="showNavPanel"
+        :destination-location="selectedLocation"
+        @route-computed="onRouteComputed"
+        @route-cleared="onRouteCleared"
+        @close="closeNavPanel"
       />
     </Teleport>
 
@@ -34,11 +47,13 @@ import {
   latLngBounds,
   map,
   marker,
+  polyline,
   tileLayer,
   type LatLngBounds,
   type DivIcon,
   type FeatureGroup,
   type Map as LeafletMap,
+  type Polyline,
   type TileLayer,
 } from 'leaflet';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -46,12 +61,16 @@ import { useRouter } from 'vue-router';
 
 import MapLegend from '@/components/map/MapLegend.vue';
 import LocationSummaryPopup from '@/components/map/LocationSummaryPopup.vue';
+import NavigationPanel from '@/components/map/NavigationPanel.vue';
 import type { Location } from '@/types/domain';
 
 const props = defineProps<{
   locations: Location[];
   allLocations?: Location[];
   externalSelectedId?: string | null;
+  /** Pass true when the map is inside the Quick View grid so it can
+   *  invalidate its size after the layout shifts. */
+  compact?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -62,16 +81,21 @@ const emit = defineEmits<{
 const router = useRouter();
 const mapElement = ref<HTMLElement | null>(null);
 const selectedLocationId = ref<string | null>(null);
+const showNavPanel = ref(false);
+const enRouteIds = ref<string[]>([]);
+const navPanelRef = ref<InstanceType<typeof NavigationPanel> | null>(null);
 
 let leafletMap: LeafletMap | null = null;
 let markerLayer: FeatureGroup | null = null;
+let routePolyline: Polyline | null = null;
 let cbdBounds: LatLngBounds | null = null;
 let baseLayer: TileLayer | null = null;
 let themeObserver: MutationObserver | null = null;
+let isShowingRoute = false; // skip CBD re-lock while a nav route is displayed
 
 const defaultCenter: [number, number] = [-37.8136, 144.9631];
 const fixedPadding: [number, number] = [34, 34];
-const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiY2xhdzAwNDMiLCJhIjoiY205MHdpZmtnMDJvOTJrcGpoeDlnN25rOCJ9.3YhROdAlsVmdU0tBDWmlGw';
+const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_ATTRIBUTION =
   '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> ' +
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>';
@@ -124,13 +148,22 @@ function markerTone(score: Location['sensoryScore']): string {
   return 'amity-map-marker--busy';
 }
 
-function buildMarkerIcon(location: Location, isSelected = false): DivIcon {
+function buildMarkerIcon(location: Location, isSelected = false, isEnRoute = false): DivIcon {
+  const classes = [
+    'amity-map-marker',
+    markerTone(location.sensoryScore),
+    isSelected ? 'amity-map-marker--selected' : '',
+    isEnRoute && !isSelected ? 'amity-map-marker--en-route' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return divIcon({
     className: 'amity-map-marker-wrapper',
     iconSize: [34, 34],
     iconAnchor: [17, 17],
     html: `
-      <span class="amity-map-marker ${markerTone(location.sensoryScore)} ${isSelected ? 'amity-map-marker--selected' : ''}">
+      <span class="${classes}">
         <span class="amity-map-marker__glow"></span>
         <span class="amity-map-marker__label">${location.sensoryScore}</span>
       </span>
@@ -210,8 +243,10 @@ function renderMarkers() {
   const renderableLocations = getRenderableLocations(props.locations);
 
   for (const location of renderableLocations) {
+    const isSelected = location.locationId === selectedLocationId.value;
+    const isEnRoute = enRouteIds.value.includes(location.locationId);
     const locationMarker = marker([location.coordinates.lat, location.coordinates.lon], {
-      icon: buildMarkerIcon(location, location.locationId === selectedLocationId.value),
+      icon: buildMarkerIcon(location, isSelected, isEnRoute),
       keyboard: true,
       riseOnHover: true,
       title: `${location.name}, sensory score ${location.sensoryScore}`,
@@ -224,6 +259,71 @@ function renderMarkers() {
 
     markerLayer.addLayer(locationMarker);
   }
+}
+
+// ── Navigation helpers ────────────────────────────────────────────────────────
+
+function openNavPanel() {
+  showNavPanel.value = true;
+}
+
+function closeNavPanel() {
+  showNavPanel.value = false;
+  clearRoutePolyline();
+}
+
+function clearRoutePolyline() {
+  if (routePolyline && leafletMap) {
+    leafletMap.removeLayer(routePolyline);
+    routePolyline = null;
+  }
+  isShowingRoute = false;
+  enRouteIds.value = [];
+  renderMarkers();
+}
+
+function onRouteComputed(payload: {
+  leafletCoords: [number, number][];
+  duration: number;
+  distance: number;
+  enRouteIds: string[];
+  allLocations: Location[];
+}) {
+  if (!leafletMap) return;
+
+  // Clear any previous route
+  clearRoutePolyline();
+
+  // Draw route polyline
+  routePolyline = polyline(payload.leafletCoords, {
+    color: '#4a7fa8',
+    weight: 5,
+    opacity: 0.85,
+    lineCap: 'round',
+    lineJoin: 'round',
+    dashArray: undefined,
+  }).addTo(leafletMap);
+
+  // Compute en-route locations using NavigationPanel's helper
+  const ids = navPanelRef.value?.computeEnRouteIds(payload.leafletCoords, props.locations) ?? [];
+  enRouteIds.value = ids;
+
+  // Inform NavigationPanel of the count
+  navPanelRef.value?.setEnRouteCount(ids.length);
+
+  // Re-render markers with highlights
+  renderMarkers();
+
+  isShowingRoute = true;
+
+  // Fit map to route
+  if (routePolyline) {
+    leafletMap.fitBounds(routePolyline.getBounds(), { padding: [40, 40], maxZoom: 16, animate: true });
+  }
+}
+
+function onRouteCleared() {
+  clearRoutePolyline();
 }
 
 function closeLocationSummary() {
@@ -266,7 +366,7 @@ onMounted(() => {
   window.setTimeout(() => {
     leafletMap?.invalidateSize();
     applyFixedBounds();
-  }, 0);
+  }, 120);
 
   if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
     themeObserver = new MutationObserver(() => {
@@ -334,10 +434,24 @@ watch(
   },
 );
 
+// When Quick View mode toggles, the grid layout shifts the map container width.
+// Give CSS time to repaint (60ms) then resync Leaflet.
+watch(
+  () => props.compact,
+  () => {
+    window.setTimeout(() => {
+      leafletMap?.invalidateSize();
+      if (!isShowingRoute) applyFixedBounds();
+    }, 60);
+  },
+);
+
+
 onBeforeUnmount(() => {
   themeObserver?.disconnect();
   themeObserver = null;
   baseLayer = null;
+  routePolyline = null;
   leafletMap?.remove();
   leafletMap = null;
   markerLayer = null;

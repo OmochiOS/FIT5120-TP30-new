@@ -101,6 +101,7 @@ export interface MapQuickFilters {
   crowds: boolean;
   unpredictability: boolean;
   activity: ActivityFilter;
+  predictionTime: string;
 }
 
 export interface UserPreference extends MapQuickFilters {

@@ -12,7 +12,7 @@ import { fetchBackendFilteredLocationIds, fetchBackendLocationDetail, fetchBacke
 import { seedLocations, statusRules } from '@/utils/adapters';
 import { fetchLiveLocationRefresh } from '@/utils/live-data';
 import { fetchAutomatedProfileRefresh } from '@/utils/profile-enrichment';
-import { fetchLocationPrediction } from '@/utils/prediction';
+import { fetchLocationPrediction, getLocationPrediction } from '@/utils/prediction';
 
 function minutesSince(observedAt: string, now = Date.now()): number {
   const observedAtMs = Date.parse(observedAt);
@@ -69,12 +69,25 @@ export const useLocationsStore = defineStore('locations', {
   getters: {
     filteredLocations(state) {
       const baseSet = state.backendFilterIds ? new Set(state.backendFilterIds) : null;
-      const categoryFiltered = (baseSet
+      let locations = (baseSet
         ? state.locations.filter((location) => baseSet.has(location.locationId))
         : state.locations
       ).filter((location) => state.activeCategory === 'All' || location.category === state.activeCategory);
 
-      return searchAndSortLocations(categoryFiltered, state.searchText);
+      const preferencesStore = usePreferencesStore();
+      const timeFilter = preferencesStore.predictionTime;
+      
+      if (timeFilter && timeFilter !== 'any') {
+        locations = locations.filter(location => {
+          const pred = state.predictionSnapshots[location.locationId]?.prediction ?? getLocationPrediction(location);
+          const activeDayPlans = pred.dayPlans?.[pred.activeDay];
+          const rows = activeDayPlans?.rows || pred.rows;
+          const targetRow = rows.find(r => r.time === timeFilter);
+          return targetRow && (targetRow.level === 'low' || targetRow.level === 'moderate');
+        });
+      }
+
+      return searchAndSortLocations(locations, state.searchText);
     },
     getLocationById: (state) => {
       return (locationId: string) =>
