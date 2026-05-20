@@ -6,7 +6,6 @@ import LocationDetailView from '@/views/LocationDetailView.vue';
 import LocationsView from '@/views/LocationsView.vue';
 import MapView from '@/views/MapView.vue';
 import NotFoundView from '@/views/NotFoundView.vue';
-import PredictionView from '@/views/PredictionView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -26,11 +25,7 @@ export const router = createRouter({
       name: 'locations',
       component: LocationsView,
     },
-    {
-      path: '/prediction',
-      name: 'prediction',
-      component: PredictionView,
-    },
+
     {
       path: '/about',
       name: 'about',

@@ -9,17 +9,10 @@
         Best Times to Visit
       </p>
       <p
-        v-if="quietestNote"
+        v-if="focusedLocation?.bestTimesSummary"
         class="text-[14px] text-sense-ink/70 dark:text-slate-200"
       >
-        <span class="font-medium text-sense-ink dark:text-white">Quietest:</span>
-        {{ quietestNote }}
-      </p>
-      <p
-        v-else
-        class="text-[13px] text-sense-ink/45 dark:text-slate-400 italic"
-      >
-        Loading…
+        {{ focusedLocation.bestTimesSummary }}
       </p>
     </div>
 
@@ -64,18 +57,6 @@ const locationsStore = useLocationsStore();
 const focusedLocation = computed(() =>
   props.locationId ? (locationsStore.getLocationById(props.locationId) ?? null) : null,
 );
-
-const focusedPrediction = computed(() =>
-  focusedLocation.value
-    ? (locationsStore.getPredictionSnapshot(focusedLocation.value.locationId)?.prediction ?? null)
-    : null,
-);
-
-const quietestNote = computed(() => {
-  const note = focusedPrediction.value?.quietestNote;
-  if (!note) return '';
-  return note.replace(/^quietest:\s*/i, '').trim();
-});
 
 const goodToKnowItems = computed<GoodToKnowItem[]>(() =>
   focusedLocation.value ? getGoodToKnow(focusedLocation.value) : [],

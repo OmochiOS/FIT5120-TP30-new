@@ -496,3 +496,99 @@ export async function fetchBackendFilteredLocationIds(
 
   return filtered.map((location) => String(location.id));
 }
+
+// ─── Crowd Insight ────────────────────────────────────────────────────────────
+
+export interface CrowdInsightResult {
+  locationId: number;
+  visitHour: number;
+  /** Backend field: visitTimeLabel (e.g. "9 AM") */
+  visitTimeLabel: string;
+  /** Backend field: predictedCrowdLevel — "LOW" | "MODERATE" | "HIGH" | "UNKNOWN" */
+  predictedCrowdLevel: string;
+  suitabilityLabel: string;
+  /** null when crowd is not HIGH */
+  alternativeSuggestion: string | null;
+  dataAvailable: boolean;
+  /** Backend field: dataNote */
+  dataNote: string;
+}
+
+/**
+ * Map a 2-hour time-slot label (as used in the filter drawer) to the
+ * representative start hour that the backend /crowd-insight endpoint accepts.
+ * Valid range for the backend: 7–21.
+ */
+export function timeSlotToHour(timeSlot: string): number | null {
+  const MAP: Record<string, number> = {
+    '7-9am': 7,
+    '9-11am': 9,
+    '11am-1pm': 11,
+    '1-3pm': 13,
+    '3-5pm': 15,
+    '5-7pm': 17,
+    '7-9pm': 19,
+    '9-11pm': 21,
+  };
+  return MAP[timeSlot] ?? null;
+}
+
+export async function fetchCrowdInsight(
+  locationId: string,
+  visitHour: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<CrowdInsightResult> {
+  return fetchJson<CrowdInsightResult>(
+    `${BACKEND_BASE_URL}/${locationId}/crowd-insight?visitHour=${visitHour}`,
+    undefined,
+    fetchImpl,
+  );
+}
+
+/**
+ * Fetches crowd-insight for every location in parallel.
+ * Returns a map of locationId → CrowdInsightResult.
+ * Per-location failures are silently skipped.
+ */
+export async function fetchCrowdInsightBatch(
+  locationIds: string[],
+  visitHour: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Map<string, CrowdInsightResult>> {
+  const results = await Promise.allSettled(
+    locationIds.map((id) => fetchCrowdInsight(id, visitHour, fetchImpl).then((r) => ({ id, r }))),
+  );
+
+  const map = new Map<string, CrowdInsightResult>();
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      map.set(result.value.id, result.value.r);
+    }
+  }
+
+  return map;
+}
+
+export interface NearbyQuietPlaceDTO {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  sensoryScore: string;
+  sensoryLabel: string;
+  distanceMeters: number;
+  label: string;
+}
+
+export async function fetchNearbyQuietPlaces(
+  destinationId: string,
+  radiusMeters = 200,
+  fetchImpl: typeof fetch = fetch,
+): Promise<NearbyQuietPlaceDTO[]> {
+  return fetchJson<NearbyQuietPlaceDTO[]>(
+    `${BACKEND_BASE_URL}/${destinationId}/nearby-quiet-places?radiusMeters=${radiusMeters}`,
+    undefined,
+    fetchImpl,
+  );
+}

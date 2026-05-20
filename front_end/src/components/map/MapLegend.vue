@@ -6,12 +6,12 @@
     <div
       v-for="item in legendItems"
       :key="item.label"
-      class="flex items-center gap-2 rounded-full"
+      class="flex items-center rounded-full"
       :class="[item.pillTone, itemClass]"
     >
       <span
-        class="h-2.5 w-2.5 rounded-full"
-        :class="item.tone"
+        class="rounded-full shrink-0"
+        :class="[item.tone, dotClass]"
       ></span>
       <span :class="item.labelTone" class="leading-none">
         {{ item.label }}
@@ -26,9 +26,11 @@ import { computed } from 'vue';
 const props = withDefaults(
   defineProps<{
     variant?: 'map' | 'detail';
+    compactMobile?: boolean;
   }>(),
   {
     variant: 'map',
+    compactMobile: false,
   },
 );
 
@@ -53,11 +55,24 @@ const legendItems = [
   },
 ];
 
-const wrapperClass = computed(() =>
-  props.variant === 'detail'
-    ? 'gap-2.5 border border-[#e4ddd1] bg-[#f9f6ef] px-2.5 py-2 text-[10px] shadow-none dark:border-white/10 dark:bg-[#13222c]'
-    : 'gap-2 border border-[#d7d4cd] bg-white px-3 py-2 text-[11px] shadow-[0_12px_28px_rgba(32,45,41,0.18)] dark:border-white/12 dark:bg-[#0d1b24]',
-);
+const wrapperClass = computed(() => {
+  if (props.variant === 'detail') {
+    return 'gap-2.5 border border-[#e4ddd1] bg-[#f9f6ef] px-2.5 py-2 text-[10px] shadow-none dark:border-white/10 dark:bg-[#13222c]';
+  }
+  if (props.compactMobile) {
+    return 'gap-1 border border-[#d7d4cd] bg-white px-2 py-1 text-[9px] shadow-[0_12px_28px_rgba(32,45,41,0.18)] dark:border-white/12 dark:bg-[#0d1b24] md:gap-2 md:px-3 md:py-2 md:text-[11px]';
+  }
+  return 'gap-2 border border-[#d7d4cd] bg-white px-3 py-2 text-[11px] shadow-[0_12px_28px_rgba(32,45,41,0.18)] dark:border-white/12 dark:bg-[#0d1b24]';
+});
 
-const itemClass = computed(() => (props.variant === 'detail' ? 'px-2 py-[5px]' : 'px-2.5 py-1'));
+const itemClass = computed(() => {
+  if (props.variant === 'detail') return 'px-2 py-[5px] gap-2';
+  if (props.compactMobile) return 'px-1.5 py-[3px] gap-1 md:px-2.5 md:py-1 md:gap-2';
+  return 'px-2.5 py-1 gap-2';
+});
+
+const dotClass = computed(() => {
+  if (props.compactMobile) return 'h-2 w-2 md:h-2.5 md:w-2.5';
+  return 'h-2.5 w-2.5';
+});
 </script>

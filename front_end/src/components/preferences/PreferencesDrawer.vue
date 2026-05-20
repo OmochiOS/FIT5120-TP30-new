@@ -292,7 +292,8 @@ function setActivity(value: ActivityFilter) {
 
 function setPredictionTime(value: string) {
   preferencesStore.replaceFilters({ ...preferencesStore.currentFilters, predictionTime: value });
-  // We trigger backend filter so the getter re-computes, even though time is filtered on frontend
-  void locationsStore.applyBackendFilter();
+  if (value !== 'any') {
+    void locationsStore.applyTimeFilter(value);
+  }
 }
 </script>

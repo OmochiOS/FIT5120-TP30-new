@@ -106,7 +106,7 @@
         <QuickViewSidebar v-if="preferencesStore.quickViewModeActive" :location-id="focusedLocationId" />
         
         <!-- Floating LocationList on top-left in regular mode -->
-        <div v-else class="pointer-events-none absolute left-3 top-3 z-[400] w-full max-w-[320px] md:left-4 md:top-4">
+        <div v-else class="pointer-events-none absolute left-3 top-3 z-[500] w-full max-w-[320px] md:left-4 md:top-4">
           <div class="pointer-events-auto flex flex-col gap-2">
             <button
               type="button"
@@ -120,9 +120,9 @@
             </button>
             
             <Transition name="fade-slide">
-              <div v-show="showLocations" class="max-h-[460px] overflow-hidden rounded-[22px] shadow-[0_12px_24px_-10px_rgba(16,74,85,0.2)]">
+              <div v-show="showLocations" class="max-h-[320px] overflow-hidden rounded-[22px] shadow-[0_12px_24px_-10px_rgba(16,74,85,0.2)] md:max-h-[460px]">
                 <LocationList
-                  class="h-full max-h-[460px]"
+                  class="h-full max-h-[320px] md:max-h-[460px]"
                   :locations="topLocations"
                   :limit="3"
                   @select="onListSelect"

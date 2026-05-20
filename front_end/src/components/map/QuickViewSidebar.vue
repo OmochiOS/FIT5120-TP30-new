@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue';
+import { computed, h, watch } from 'vue';
 import type { FunctionalComponent } from 'vue';
 
 import { useLocationsStore } from '@/stores/locations';
@@ -117,14 +117,12 @@ const focusedLocation = computed(() =>
   props.locationId ? (locationsStore.getLocationById(props.locationId) ?? null) : null,
 );
 
-// Hydrate detail + prediction for the focused location
-import { watch } from 'vue';
+// Hydrate detail for the focused location
 watch(
   () => focusedLocation.value?.locationId,
   (id) => {
     if (id) {
       void locationsStore.hydrateLocationDetail(id);
-      void locationsStore.hydratePrediction(id);
     }
   },
   { immediate: true },
