@@ -145,7 +145,6 @@
       </p>
     </div>
 
-    <!-- ── Best Times to Visit (inline text) ───────────────────────────────── -->
     <div
       v-if="focusedLocation"
       class="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1"
@@ -154,17 +153,10 @@
         Best Times to Visit
       </p>
       <p
-        v-if="quietestNote"
+        v-if="focusedLocation.bestTimesSummary"
         class="text-[14px] text-sense-ink/70 dark:text-slate-200"
       >
-        <span class="font-medium text-sense-ink dark:text-white">Quietest:</span>
-        {{ quietestNote }}
-      </p>
-      <p
-        v-else
-        class="text-[13px] text-sense-ink/45 dark:text-slate-400 italic"
-      >
-        Loading…
+        {{ focusedLocation.bestTimesSummary }}
       </p>
     </div>
 
@@ -243,32 +235,16 @@ const focusedLocation = computed(() =>
   focusedLocationId.value ? (locationsStore.getLocationById(focusedLocationId.value) ?? null) : null,
 );
 
-// Hydrate detail + prediction for the focused location
+// Hydrate detail for the focused location
 watch(
   () => focusedLocation.value?.locationId,
   (id) => {
     if (id) {
       void locationsStore.hydrateLocationDetail(id);
-      void locationsStore.hydratePrediction(id);
     }
   },
   { immediate: true },
 );
-
-// ─── Best times ───────────────────────────────────────────────────────────────
-const focusedPrediction = computed(() =>
-  focusedLocation.value
-    ? (locationsStore.getPredictionSnapshot(focusedLocation.value.locationId)?.prediction ?? null)
-    : null,
-);
-
-const quietestNote = computed(() => {
-  const note = focusedPrediction.value?.quietestNote;
-  if (!note) return '';
-  // The quietestNote from the API may already start with "Quietest: " — strip it
-  // so our template's own "Quietest:" label doesn't double up.
-  return note.replace(/^quietest:\s*/i, '').trim();
-});
 
 // ─── Good to Know ─────────────────────────────────────────────────────────────
 const goodToKnowItems = computed<GoodToKnowItem[]>(() =>

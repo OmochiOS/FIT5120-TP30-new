@@ -53,31 +53,12 @@
 
     <SensoryProfileCard :profile="location.sensoryProfile" />
 
-    <section class="space-y-2">
-      <div
-        v-if="predictionMessage || predictionTimestampLabel"
-        class="detail-meta space-y-1 text-[14px] text-sense-ink/54 dark:text-slate-100"
-      >
-        <p v-if="predictionMessage">
-          {{ predictionMessage }}
-        </p>
-        <p v-if="predictionTimestampLabel">
-          {{ predictionTimestampLabel }}
-        </p>
-      </div>
-
-      <div
-        v-if="predictionStatus === 'loading' && !prediction"
-        class="detail-surface rounded-[18px] border border-dashed border-sense-teal/14 bg-white px-5 py-8 text-[15px] text-sense-ink/56 dark:border-white/10 dark:bg-[#16252f]/90 dark:text-slate-100"
-      >
-        Loading historical pedestrian counts for best-time guidance...
-      </div>
-
-      <BestTimesCard
-        v-if="prediction"
-        :prediction="prediction"
-      />
-    </section>
+    <BestTimesInsightCard
+      v-if="timeBarSegments.length || insightLoading"
+      :segments="timeBarSegments"
+      :quietest-note="quietestNote"
+      :loading="insightLoading"
+    />
 
     <PreparationGuideCard :items="goodToKnowItems" />
   </section>
@@ -120,30 +101,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import BestTimesCard from '@/components/sensory/BestTimesCard.vue';
+import BestTimesInsightCard from '@/components/sensory/BestTimesInsightCard.vue';
 import PreparationGuideCard from '@/components/sensory/PreparationGuideCard.vue';
 import SensoryProfileCard from '@/components/sensory/SensoryProfileCard.vue';
 import type { GoodToKnowItem } from '@/types/domain';
 import { useLocationsStore } from '@/stores/locations';
 import { getGoodToKnow } from '@/utils/location-details';
+import { fetchCrowdInsight, type CrowdInsightResult } from '@/utils/java-backend';
 
 const route = useRoute();
 const locationsStore = useLocationsStore();
 const currentLocationId = computed(() => String(route.params.locationId ?? ''));
 
 const location = computed(() => locationsStore.getLocationById(currentLocationId.value));
-const predictionSnapshot = computed(() =>
-  location.value ? locationsStore.getPredictionSnapshot(location.value.locationId) : null,
-);
-const prediction = computed(() => predictionSnapshot.value?.prediction ?? null);
-const predictionStatus = computed(() => predictionSnapshot.value?.status ?? 'loading');
-const predictionMessage = computed(() => predictionSnapshot.value?.note ?? '');
-const predictionTimestampLabel = computed(() =>
-  location.value ? locationsStore.getPredictionTimestampLabel(location.value.locationId) : '',
-);
 const goodToKnowItems = computed<GoodToKnowItem[]>(() =>
   location.value ? getGoodToKnow(location.value) : [],
 );
@@ -151,15 +124,50 @@ const isLoadingLocation = computed(() =>
   !locationsStore.locationsHydrated || locationsStore.detailRefreshing[currentLocationId.value],
 );
 
+// ─── Crowd-insight time bar ───────────────────────────────────────────────────
+const HOURS = [7, 9, 11, 13, 15, 17, 19, 21] as const;
+const HOUR_LABELS: Record<number, string> = {
+  7: '7-9am', 9: '9-11am', 11: '11am-1pm', 13: '1-3pm',
+  15: '3-5pm', 17: '5-7pm', 19: '7-9pm', 21: '9-11pm',
+};
+
+const insightLoading = ref(false);
+const insightResults = ref<CrowdInsightResult[]>([]);
+
+async function loadInsights(locationId: string) {
+  insightLoading.value = true;
+  insightResults.value = [];
+  const settled = await Promise.allSettled(
+    HOURS.map((h) => fetchCrowdInsight(locationId, h)),
+  );
+  insightResults.value = settled
+    .filter((r): r is PromiseFulfilledResult<CrowdInsightResult> => r.status === 'fulfilled')
+    .map((r) => r.value);
+  insightLoading.value = false;
+}
+
+const timeBarSegments = computed<{ time: string; level: 'low' | 'moderate' | 'high' }[]>(() =>
+  HOURS.map((h) => {
+    const result = insightResults.value.find((r) => r.visitHour === h);
+    const raw = result?.predictedCrowdLevel ?? 'UNKNOWN';
+    const level = raw === 'LOW' ? 'low' : raw === 'MODERATE' ? 'moderate' : 'high';
+    return { time: HOUR_LABELS[h], level };
+  }),
+);
+
+const quietestNote = computed(() => {
+  const quietest = insightResults.value
+    .filter((r) => r.predictedCrowdLevel === 'LOW')
+    .map((r) => r.visitTimeLabel)[0];
+  return quietest ? `Quietest around ${quietest}` : (location.value?.bestTimesSummary ?? '');
+});
+
 watch(
   () => location.value?.locationId,
   (nextLocationId) => {
-    if (!nextLocationId) {
-      return;
-    }
-
+    if (!nextLocationId) return;
     void locationsStore.hydrateLocationDetail(nextLocationId);
-    void locationsStore.hydratePrediction(nextLocationId);
+    void loadInsights(nextLocationId);
   },
   { immediate: true },
 );

@@ -4,15 +4,20 @@ import type {
   Category,
   DataStatus,
   Location,
-  PredictionSnapshot,
 } from '@/types/domain';
 import { usePreferencesStore } from '@/stores/preferences';
 import { searchAndSortLocations } from '@/utils/filters';
-import { fetchBackendFilteredLocationIds, fetchBackendLocationDetail, fetchBackendLocations } from '@/utils/java-backend';
+import {
+  fetchBackendFilteredLocationIds,
+  fetchBackendLocationDetail,
+  fetchBackendLocations,
+  fetchCrowdInsightBatch,
+  timeSlotToHour,
+  type CrowdInsightResult,
+} from '@/utils/java-backend';
 import { seedLocations, statusRules } from '@/utils/adapters';
 import { fetchLiveLocationRefresh } from '@/utils/live-data';
 import { fetchAutomatedProfileRefresh } from '@/utils/profile-enrichment';
-import { fetchLocationPrediction, getLocationPrediction } from '@/utils/prediction';
 
 function minutesSince(observedAt: string, now = Date.now()): number {
   const observedAtMs = Date.parse(observedAt);
@@ -34,19 +39,6 @@ function formatLastSyncLabel(status: DataStatus, observedAt: string): string {
   return `Last sync ${ageInMinutes} min ago`;
 }
 
-function formatHistoricalSyncLabel(observedAt: string): string {
-  const date = new Date(observedAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return `Historical data through ${date.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })}`;
-}
 
 function isBackendDrivenLocation(location: Location): boolean {
   return location.dataSource === 'backend';
@@ -61,13 +53,19 @@ export const useLocationsStore = defineStore('locations', {
     liveDataStatus: 'loading' as DataStatus,
     liveDataSyncedAt: null as string | null,
     liveDataRefreshing: false,
-    predictionSnapshots: {} as Record<string, PredictionSnapshot | undefined>,
-    predictionRefreshing: {} as Record<string, boolean>,
+    /** Cache of crowd-insight results keyed by `"${locationId}:${visitHour}"` */
+    crowdInsightCache: {} as Record<string, CrowdInsightResult>,
+    crowdInsightFetching: false,
     detailRefreshing: {} as Record<string, boolean>,
     backendFilterIds: null as string[] | null,
   }),
   getters: {
     filteredLocations(state) {
+      // Ignore current filters and search across all locations if a search query is provided
+      if (state.searchText.trim() !== '') {
+        return searchAndSortLocations(state.locations, state.searchText);
+      }
+
       const baseSet = state.backendFilterIds ? new Set(state.backendFilterIds) : null;
       let locations = (baseSet
         ? state.locations.filter((location) => baseSet.has(location.locationId))
@@ -76,42 +74,26 @@ export const useLocationsStore = defineStore('locations', {
 
       const preferencesStore = usePreferencesStore();
       const timeFilter = preferencesStore.predictionTime;
-      
+
       if (timeFilter && timeFilter !== 'any') {
-        locations = locations.filter(location => {
-          const pred = state.predictionSnapshots[location.locationId]?.prediction ?? getLocationPrediction(location);
-          const activeDayPlans = pred.dayPlans?.[pred.activeDay];
-          const rows = activeDayPlans?.rows || pred.rows;
-          const targetRow = rows.find(r => r.time === timeFilter);
-          return targetRow && (targetRow.level === 'low' || targetRow.level === 'moderate');
+        const hour = timeSlotToHour(timeFilter);
+        locations = locations.filter((location) => {
+          if (hour === null) return true;
+          const cached = state.crowdInsightCache[`${location.locationId}:${hour}`];
+          if (!cached) return true; // not yet fetched → show optimistically
+          return cached.predictedCrowdLevel === 'LOW' || cached.predictedCrowdLevel === 'MODERATE';
         });
       }
 
-      return searchAndSortLocations(locations, state.searchText);
+      return locations;
     },
     getLocationById: (state) => {
       return (locationId: string) =>
         state.locations.find((location) => location.locationId === locationId);
     },
-    getPredictionSnapshot: (state) => {
-      return (locationId: string) => state.predictionSnapshots[locationId] ?? null;
-    },
-    getPredictionByLocationId() {
-      return (locationId: string) => this.getPredictionSnapshot(locationId)?.prediction ?? null;
-    },
-    getPredictionMessage() {
-      return (locationId: string) => this.getPredictionSnapshot(locationId)?.note ?? '';
-    },
-    getPredictionTimestampLabel() {
-      return (locationId: string) => {
-        const snapshot = this.getPredictionSnapshot(locationId);
-
-        if (!snapshot?.syncedAt) {
-          return '';
-        }
-
-        return formatHistoricalSyncLabel(snapshot.syncedAt);
-      };
+    getCrowdInsight: (state) => {
+      return (locationId: string, visitHour: number) =>
+        state.crowdInsightCache[`${locationId}:${visitHour}`] ?? null;
     },
     liveDataMessage(state): string {
       if (state.liveDataRefreshing) {
@@ -148,6 +130,13 @@ export const useLocationsStore = defineStore('locations', {
     async hydrateLocations() {
       try {
         this.locations = await fetchBackendLocations();
+        
+        // Asynchronously fetch details for all locations so we have predictabilityLevel
+        // and full sensory profiles without modifying the backend summary API
+        Promise.allSettled(
+          this.locations.map((loc) => this.hydrateLocationDetail(loc.locationId))
+        ).catch(console.error);
+
       } catch (error) {
         console.error('Backend location load failed. Falling back to local seed data.', error);
         this.locations = seedLocations;
@@ -234,36 +223,26 @@ export const useLocationsStore = defineStore('locations', {
     async hydrateLiveSnapshots() {
       await this.refreshLiveData();
     },
-    async hydratePrediction(locationId: string, force = false) {
-      if (this.predictionRefreshing[locationId]) {
-        return;
-      }
+    /**
+     * Batch-fetch crowd-insight for all current locations at the given hour
+     * and store results in the cache. Called when the user selects a time slot.
+     */
+    async applyTimeFilter(timeSlot: string) {
+      if (timeSlot === 'any' || this.crowdInsightFetching) return;
+      const hour = timeSlotToHour(timeSlot);
+      if (hour === null) return;
 
-      const location = this.getLocationById(locationId);
-
-      if (!location) {
-        return;
-      }
-
-      const existingSnapshot = this.predictionSnapshots[locationId];
-
-      if (!force && existingSnapshot?.status === 'fresh' && existingSnapshot.source === 'official') {
-        return;
-      }
-
-      this.predictionRefreshing[locationId] = true;
-      this.predictionSnapshots[locationId] = {
-        prediction: existingSnapshot?.prediction ?? null,
-        status: 'loading',
-        source: existingSnapshot?.source ?? 'fallback',
-        syncedAt: existingSnapshot?.syncedAt ?? null,
-        note: 'Loading historical pedestrian counts...',
-      };
-
+      this.crowdInsightFetching = true;
       try {
-        this.predictionSnapshots[locationId] = await fetchLocationPrediction(location);
+        const ids = this.locations.map((l) => l.locationId);
+        const results = await fetchCrowdInsightBatch(ids, hour);
+        for (const [id, result] of results) {
+          this.crowdInsightCache[`${id}:${hour}`] = result;
+        }
+      } catch (error) {
+        console.error('Crowd insight batch fetch failed.', error);
       } finally {
-        this.predictionRefreshing[locationId] = false;
+        this.crowdInsightFetching = false;
       }
     },
     setSearchText(value: string) {

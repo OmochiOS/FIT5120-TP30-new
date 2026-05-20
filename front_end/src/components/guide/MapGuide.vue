@@ -112,6 +112,12 @@ const ProfileIcon: FunctionalComponent = () =>
     h('path', { d: 'M4 10h12M10 4l6 6-6 6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }),
   ]);
 
+const QuickViewIcon: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 20 20', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.75', class: 'h-5 w-5' }, [
+    h('rect', { x: '3', y: '3', width: '14', height: '14', rx: '3' }),
+    h('path', { d: 'M9 3v14', 'stroke-linecap': 'round' }),
+  ]);
+
 const steps: GuideStep[] = [
   {
     target: 'search',
@@ -120,6 +126,14 @@ const steps: GuideStep[] = [
     placement: 'below',
     arrowDir: 'top',
     icon: SearchIcon,
+  },
+  {
+    target: 'quick-view',
+    title: 'Try Quick View Mode',
+    body: 'Toggle Quick View to see a split-screen layout with interactive sensory charts side-by-side.',
+    placement: 'below',
+    arrowDir: 'top',
+    icon: QuickViewIcon,
   },
   {
     target: 'filter',
@@ -233,8 +247,8 @@ function trackTarget() {
 // ─── Step transitions ─────────────────────────────────────────────────────────
 
 async function goToStep(n: number) {
-  // Step 4 (index 3): auto-select first location so popup appears
-  if (n === 3) {
+  // Step 5 (index 4): auto-select first location so popup appears
+  if (n === 4) {
     const firstId = props.firstLocationId ?? locationsStore.filteredLocations[0]?.locationId ?? null;
     if (firstId) {
       emit('select-location', firstId);
@@ -288,7 +302,7 @@ onBeforeUnmount(() => {
 .guide-root {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: 10000;
   pointer-events: none; /* let spotlight + bubble handle their own events */
 }
 
@@ -296,14 +310,14 @@ onBeforeUnmount(() => {
 .guide-spotlight {
   position: fixed;
   pointer-events: none;
-  z-index: 9001;
+  z-index: 10001;
   transition: top 250ms ease, left 250ms ease, width 250ms ease, height 250ms ease;
 }
 
 /* ─── Bubble ───────────────────────────────────────── */
 .guide-bubble {
   position: fixed;
-  z-index: 9002;
+  z-index: 10002;
   pointer-events: all;
   width: 290px;
   border-radius: 20px;

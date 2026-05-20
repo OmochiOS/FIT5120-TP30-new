@@ -33,7 +33,7 @@
 
     <div class="pointer-events-none absolute inset-x-3 bottom-3 z-[450] flex justify-end md:inset-x-4 md:bottom-4">
       <div class="pointer-events-auto">
-        <MapLegend />
+        <MapLegend :compact-mobile="true" />
       </div>
     </div>
   </section>
@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import {
+  circle,
   control,
   divIcon,
   featureGroup,
@@ -88,6 +89,11 @@ const navPanelRef = ref<InstanceType<typeof NavigationPanel> | null>(null);
 let leafletMap: LeafletMap | null = null;
 let markerLayer: FeatureGroup | null = null;
 let routePolyline: Polyline | null = null;
+let destCircle: any = null;
+let quietPlaceIdsRef: string[] = [];
+let startLocationIdRef: string | null = null;
+let routeStartMarker: any = null;
+let routeEndMarker: any = null;
 let cbdBounds: LatLngBounds | null = null;
 let baseLayer: TileLayer | null = null;
 let themeObserver: MutationObserver | null = null;
@@ -149,6 +155,7 @@ function markerTone(score: Location['sensoryScore']): string {
 }
 
 function buildMarkerIcon(location: Location, isSelected = false, isEnRoute = false): DivIcon {
+  const isQuietPlace = quietPlaceIdsRef.includes(location.locationId);
   const classes = [
     'amity-map-marker',
     markerTone(location.sensoryScore),
@@ -158,12 +165,24 @@ function buildMarkerIcon(location: Location, isSelected = false, isEnRoute = fal
     .filter(Boolean)
     .join(' ');
 
+  let highlightColor = '#10b981'; // Default green for calm
+  if (location.sensoryScore === 3) highlightColor = '#f59e0b'; // Orange for moderate
+  if (location.sensoryScore >= 4) highlightColor = '#ef4444'; // Red for busy
+
+  const quietBadge = isQuietPlace ? `
+    <div style="position: absolute; top: -6px; right: -6px; background: ${highlightColor}; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10;">
+      <svg viewBox="0 0 16 16" fill="currentColor" style="width: 10px; height: 10px;"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zM6.5 10.5l-2-2 1-1 1.5 1.5 3.5-3.5 1 1-4.5 4.5z"/></svg>
+    </div>
+    <div style="position: absolute; inset: -5px; border-radius: 50%; border: 2.5px solid ${highlightColor}; box-shadow: 0 0 10px ${highlightColor}80; pointer-events: none;"></div>
+  ` : '';
+
   return divIcon({
-    className: 'amity-map-marker-wrapper',
+    className: 'amity-map-marker-wrapper' + (isQuietPlace ? ' z-[999]' : ''),
     iconSize: [34, 34],
     iconAnchor: [17, 17],
     html: `
       <span class="${classes}">
+        ${quietBadge}
         <span class="amity-map-marker__glow"></span>
         <span class="amity-map-marker__label">${location.sensoryScore}</span>
       </span>
@@ -234,16 +253,29 @@ function focusLocationOnMap(location: Location) {
 }
 
 function renderMarkers() {
-  if (!leafletMap || !markerLayer) {
-    return;
-  }
+  if (!leafletMap || !markerLayer) return;
 
   markerLayer.clearLayers();
 
-  const renderableLocations = getRenderableLocations(props.locations);
+  let renderableLocations = [...props.locations];
+
+  // Grant exemption to route context points (start, quiet places) so they render regardless of active filters.
+  if (isShowingRoute) {
+    const forceShowIds = new Set<string>();
+    if (startLocationIdRef) forceShowIds.add(startLocationIdRef);
+    quietPlaceIdsRef.forEach(id => forceShowIds.add(id));
+
+    if (forceShowIds.size > 0 && props.allLocations) {
+      const missing = props.allLocations.filter(loc => 
+        forceShowIds.has(loc.locationId) && 
+        !renderableLocations.some(r => r.locationId === loc.locationId)
+      );
+      renderableLocations = [...renderableLocations, ...missing];
+    }
+  }
 
   for (const location of renderableLocations) {
-    const isSelected = location.locationId === selectedLocationId.value;
+    const isSelected = selectedLocationId.value === location.locationId;
     const isEnRoute = enRouteIds.value.includes(location.locationId);
     const locationMarker = marker([location.coordinates.lat, location.coordinates.lon], {
       icon: buildMarkerIcon(location, isSelected, isEnRoute),
@@ -277,7 +309,21 @@ function clearRoutePolyline() {
     leafletMap.removeLayer(routePolyline);
     routePolyline = null;
   }
+  if (routeStartMarker && leafletMap) {
+    leafletMap.removeLayer(routeStartMarker);
+    routeStartMarker = null;
+  }
+  if (routeEndMarker && leafletMap) {
+    leafletMap.removeLayer(routeEndMarker);
+    routeEndMarker = null;
+  }
+  if (destCircle && leafletMap) {
+    leafletMap.removeLayer(destCircle);
+    destCircle = null;
+  }
   isShowingRoute = false;
+  quietPlaceIdsRef = [];
+  startLocationIdRef = null;
   enRouteIds.value = [];
   renderMarkers();
 }
@@ -287,6 +333,8 @@ function onRouteComputed(payload: {
   duration: number;
   distance: number;
   enRouteIds: string[];
+  quietPlaceIds: string[];
+  startLocationId: string | null;
   allLocations: Location[];
 }) {
   if (!leafletMap) return;
@@ -296,13 +344,53 @@ function onRouteComputed(payload: {
 
   // Draw route polyline
   routePolyline = polyline(payload.leafletCoords, {
-    color: '#4a7fa8',
-    weight: 5,
-    opacity: 0.85,
+    color: '#3b82f6',
+    weight: 8,
+    opacity: 1.0,
     lineCap: 'round',
     lineJoin: 'round',
     dashArray: undefined,
   }).addTo(leafletMap);
+
+  // Draw start and end markers
+  if (payload.leafletCoords.length > 0) {
+    const startCoord = payload.leafletCoords[0];
+    const endCoord = payload.leafletCoords[payload.leafletCoords.length - 1];
+
+    routeStartMarker = marker(startCoord, {
+      icon: divIcon({
+        className: 'amity-route-marker',
+        html: `<div style="background-color: #22c55e; border: 3px solid white; border-radius: 50%; width: 22px; height: 22px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><div style="width: 6px; height: 6px; background-color: white; border-radius: 50%;"></div></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      }),
+      title: 'Start',
+    }).addTo(leafletMap);
+
+    routeEndMarker = marker(endCoord, {
+      icon: divIcon({
+        className: 'amity-route-marker',
+        html: `<div style="background-color: #ef4444; border: 3px solid white; border-radius: 50%; width: 22px; height: 22px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><div style="width: 6px; height: 6px; background-color: white; border-radius: 50%;"></div></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      }),
+      title: 'End',
+    }).addTo(leafletMap);
+
+    // Draw 200m circle around destination
+    destCircle = circle(endCoord, {
+      color: '#10b981',
+      fillColor: '#10b981',
+      fillOpacity: 0.12,
+      radius: 200,
+      weight: 1,
+      dashArray: '4 4'
+    }).addTo(leafletMap);
+  }
+
+  // Set quiet place IDs and start ID from payload
+  quietPlaceIdsRef = payload.quietPlaceIds || [];
+  startLocationIdRef = payload.startLocationId;
 
   // Compute en-route locations using NavigationPanel's helper
   const ids = navPanelRef.value?.computeEnRouteIds(payload.leafletCoords, props.locations) ?? [];
@@ -311,10 +399,11 @@ function onRouteComputed(payload: {
   // Inform NavigationPanel of the count
   navPanelRef.value?.setEnRouteCount(ids.length);
 
+  // Set flag BEFORE rendering so force-show logic applies
+  isShowingRoute = true;
+
   // Re-render markers with highlights
   renderMarkers();
-
-  isShowingRoute = true;
 
   // Fit map to route
   if (routePolyline) {

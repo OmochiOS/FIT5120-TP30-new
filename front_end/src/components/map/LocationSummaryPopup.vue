@@ -451,7 +451,25 @@ watch(
 
 onBeforeUnmount(() => {
   removeDragListeners();
+  
+  if (typeof document !== 'undefined') {
+    document.body.style.paddingBottom = '';
+  }
 });
+
+watch(
+  () => props.location,
+  (isVisible) => {
+    if (typeof window === 'undefined') return;
+    
+    if (isVisible && window.innerWidth < 768) {
+      document.body.style.paddingBottom = '45vh';
+    } else {
+      document.body.style.paddingBottom = '';
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -497,15 +515,18 @@ onBeforeUnmount(() => {
     transform: none !important; /* disable drag on mobile */
     border-radius: 20px 20px 20px 20px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    max-height: 82vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    
+    /* Compress card height significantly on mobile to prevent obscuring map */
+    height: 42vh; 
+    min-height: 320px;
+    max-height: 420px;
   }
 
   .summary-shell .map-summary-panel {
     border-radius: 20px;
     touch-action: pan-y;
     cursor: default;
+    height: 100%; /* Delegate scrolling to inner .summary-scroll-body */
   }
 
   /* Slide up from bottom on mobile */
